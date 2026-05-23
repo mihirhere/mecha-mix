@@ -194,7 +194,7 @@ h1,h2,h3,h4,h5{margin:0; font-weight:400;}
   gap:24px; flex-wrap:wrap;
 }
 .logo-strip .mark-block{
-  display:flex; align-items:center; gap:18px;
+  display:flex; flex-direction:column; align-items:flex-start; gap:10px;
 }
 .logo-strip .mark-block img{height:48px;}
 .logo-strip .mark-block .text{
@@ -244,11 +244,12 @@ section{padding:140px 0;}
 
 .section-no{
   font-family:'JetBrains Mono', monospace;
-  font-size:11px; letter-spacing:.2em; color:var(--accent);
+  font-size:10.5px; letter-spacing:.12em; color:var(--accent);
   text-transform:uppercase;
   display:flex; align-items:center; gap:14px;
   margin-bottom:18px;
 }
+.section-no .num{color:var(--ink-mute); margin-right:2px;}
 .section-no::after{
   content:""; flex:1; height:1px; background:var(--rule);
 }
@@ -880,7 +881,7 @@ footer{
 <!-- ============================ STORY ============================ -->
 <section>
   <div class="wrap">
-    <div class="section-no">§ 01 — Project</div>
+    <div class="section-no"><span class="num">1</span>Project</div>
     <div class="section-head reveal">
       <h2 class="serif">The <span class="em">project</span></h2>
       <div class="right">Two semesters · Five engineers · One machine</div>
@@ -902,9 +903,9 @@ footer{
       </aside>
 
       <div class="body reveal">
-        <p><span class="drop serif">T</span>he beverage industry has an inefficiency gap. Manual mixing is inconsistent and labor-bound; high-end machines are visually impressive but mechanically clunky, or fast but indifferent to taste. <b>Mecha-Mix closes that gap with the discipline of a real engineering system</b> — positive-displacement metering, validated thermal management, and a sanitation architecture that satisfies food-equipment code.</p>
+        <p><span class="drop serif">T</span>he beverage industry has an inefficiency gap. Manual mixing is inconsistent and labor-bound; high-end machines are visually impressive but mechanically clunky, or fast but indifferent to taste. Mecha-Mix closes that gap with the discipline of a real engineering system — positive-displacement metering, validated thermal management, and a sanitation architecture that satisfies food-equipment code.</p>
 
-        <p>The system feeds five chilled ingredients through individually-driven food-grade tubing into a <b>CFD-redesigned V-bottom mixing chamber</b>, where a direct-coupled stainless impeller homogenizes the drink in under a second. A normally-closed solenoid pinch valve gates the nozzle as a fail-safe against gravity drip. A 144 W Peltier module — sized from a first-principles steady-state heat balance — holds the cold chamber at 5 ± 2 °C with significant thermal headroom.</p>
+        <p>The system feeds five chilled ingredients through individually-driven food-grade tubing into a CFD-redesigned V-bottom mixing chamber, where a direct-coupled stainless impeller homogenizes the drink in under a second. A normally-closed solenoid pinch valve gates the nozzle as a fail-safe against gravity drip. A 144 W Peltier module — sized from a first-principles steady-state heat balance — holds the cold chamber at 5 ± 2 °C with significant thermal headroom.</p>
 
         <figure class="story-photo">
           <img src="assets/showcase/team-with-drink.jpg" alt="Three of the Alchemists hold a freshly-poured red drink at the showcase booth, the matte-black Mecha-Mix machine visible behind them" />
@@ -919,9 +920,9 @@ footer{
           <cite>— Mecha-Mix Final Design Report, May 2026</cite>
         </p>
 
-        <p>Control runs on an <b>Arduino Giga R1 WiFi</b> driving a finite-state machine — IDLE → SELECT → DISPENSE → MIX → SERVE → CLEAN — with a touchscreen UI, a WiFi-hosted recipe REST API, and a hardware-level fail-safe that defaults every valve to closed during boot via 10 kΩ pull-downs.</p>
+        <p>Control runs on an Arduino Giga R1 WiFi driving a finite-state machine — IDLE → SELECT → DISPENSE → MIX → SERVE → CLEAN — with a touchscreen UI, a WiFi-hosted recipe REST API, and a hardware-level fail-safe that defaults every valve to closed during boot via 10 kΩ pull-downs.</p>
 
-        <p>The whole machine is held together by a <b>welding-free aluminum T-slot frame</b> with hex-standoff corner brackets, designed around the senior design fabrication constraint that disallows welds. Plexiglass panels and a rear electronics bay isolate fluid from electronics; modular pump-bottle-valve channels make every wetted component serviceable without tools.</p>
+        <p>The whole machine is held together by a welding-free aluminum T-slot frame with hex-standoff corner brackets, designed around the senior design fabrication constraint that disallows welds. Plexiglass panels and a rear electronics bay isolate fluid from electronics; modular pump-bottle-valve channels make every wetted component serviceable without tools.</p>
       </div>
     </div>
   </div>
@@ -930,7 +931,7 @@ footer{
 <!-- ============================ SUBSYSTEMS ============================ -->
 <section style="padding-top:0;">
   <div class="wrap">
-    <div class="section-no">§ 02 — Architecture</div>
+    <div class="section-no"><span class="num">2</span>Architecture</div>
     <div class="section-head reveal">
       <h2 class="serif">Six <span class="em">subsystems</span>, one machine</h2>
       <div class="right">Cooling · Dispensing · Mixing<br>Cleaning · Control · Structure</div>
@@ -1015,7 +1016,7 @@ footer{
 <!-- ============================ TEAM ============================ -->
 <section style="padding-top:0;">
   <div class="wrap">
-    <div class="section-no">§ 03 — Team</div>
+    <div class="section-no"><span class="num">3</span>Team</div>
     <div class="section-head reveal">
       <h2 class="serif">The <span class="em">Alchemists</span></h2>
       <div class="right">Five mechanical engineers · One capstone</div>
@@ -1030,13 +1031,12 @@ footer{
         <h3 class="serif">From <em>design</em> to <em>fabrication</em> to <em>showcase</em>.</h3>
         <p>Five senior mechanical engineering students at NYU Tandon. Two semesters. One machine designed from first principles, fabricated in-house, validated against eight measurable performance specifications, and presented at the May 2026 Senior Design Showcase.</p>
         <div class="roster">
-          <div><span class="name serif">Jason He</span><span class="role">Mech · CAD · Integration</span></div>
-          <div><span class="name serif">Anthony Huanca</span><span class="role">Mech · Mechatronics · Testing</span></div>
-          <div><span class="name serif">Sahil Krishnani</span><span class="role">CAD · FEA · Documentation</span></div>
-          <div><span class="name serif">Youssef Mikhaiil</span><span class="role">CFD · Thermal · Validation</span></div>
-          <div><span class="name serif">Mihir Pabby</span><span class="role">Firmware · Controls · UI / REST</span></div>
+          <div><span class="name serif">Jason He</span></div>
+          <div><span class="name serif">Anthony Huanca</span></div>
+          <div><span class="name serif">Sahil Krishnani</span></div>
+          <div><span class="name serif">Youssef Mikhaiil</span></div>
+          <div><span class="name serif">Mihir Pabby</span></div>
         </div>
-        <div class="team-note">ⓘ Roles inferred — Alchemists, send me the real breakdown and I'll update.</div>
       </div>
     </div>
   </div>
@@ -1045,7 +1045,7 @@ footer{
 <!-- ============================ TESTS ============================ -->
 <section style="padding-top:0;">
   <div class="wrap">
-    <div class="section-no">§ 04 — Validation</div>
+    <div class="section-no"><span class="num">4</span>Validation</div>
     <div class="section-head reveal">
       <h2 class="serif">Eight tests, <span class="em">eight passes</span></h2>
       <div class="right">Every spec instrumented · Every threshold met</div>
@@ -1053,9 +1053,9 @@ footer{
 
     <div class="tests reveal">
       <div class="intro">
-        <p>Every performance specification was reduced to a concrete pass/fail test with an instrumented threshold. <b>Every test passed.</b></p>
+        <p>Every performance specification was reduced to a concrete pass/fail test with an instrumented threshold. Every test passed.</p>
         <p class="pull">We didn't write tests that would pass. We wrote thresholds that mattered to the customer.</p>
-        <p><b>Dose consistency</b> on a precision scale verified the ±0.1 mL spec across all five channels. <b>Static leak</b> sat the system idle for 30 minutes with the solenoid de-energized — zero drops. <b>Cleaning efficiency</b> was a side-by-side visual comparison against a clear-water control. The <b>Steady-State Cooling Test</b> tracked DS18B20 readings against a calibrated IR thermometer for two hours, and converged on 4.8 °C — directly tracking the CFD-predicted 4.5 °C minimum.</p>
+        <p>Dose consistency on a precision scale verified the ±0.1 mL spec across all five channels. Static leak sat the system idle for 30 minutes with the solenoid de-energized — zero drops. Cleaning efficiency was a side-by-side visual comparison against a clear-water control. The Steady-State Cooling Test tracked DS18B20 readings against a calibrated IR thermometer for two hours, and converged on 4.8 °C — directly tracking the CFD-predicted 4.5 °C minimum.</p>
       </div>
 
       <div class="results-table">
@@ -1118,7 +1118,7 @@ footer{
 <!-- ============================ SHOWCASE TEASER ============================ -->
 <section style="padding-top:0;">
   <div class="wrap">
-    <div class="section-no">§ 05 — Showcase</div>
+    <div class="section-no"><span class="num">5</span>Showcase</div>
     <div class="section-head reveal">
       <h2 class="serif">At the <span class="em">showcase</span></h2>
       <div class="right">Brooklyn · May 5, 2026</div>
