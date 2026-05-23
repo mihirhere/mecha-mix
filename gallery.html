@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gallery — Mecha-Mix</title>
+<meta name="description" content="The Alchemists at the NYU Tandon Senior Design Showcase, May 2026 — plus CAD and engineering renders." />
+<link rel="icon" type="image/png" href="assets/mark.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#0B1422; --bg-2:#101B30; --bg-3:#172642;
+  --ink:#F1E6CE; --ink-soft:#CCBFA3; --ink-mute:#7B879D;
+  --rule:#22314D; --rule-soft:#19243A;
+  --accent:#E08438; --accent-bright:#F09B52;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font-family:'DM Sans', system-ui, sans-serif; font-size:17px;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.95  0 0 0 0 0.9  0 0 0 0 0.81  0 0 0 0.055 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  mix-blend-mode:overlay; opacity:.6; z-index:1000;
+}
+a{color:inherit; text-decoration:none;}
+img{max-width:100%; display:block;}
+.serif{font-family:'Fraunces', Georgia, serif;}
+.mono{font-family:'JetBrains Mono', monospace;}
+
+.wrap{max-width:1480px; margin:0 auto; padding:0 36px;}
+@media (max-width:700px){.wrap{padding:0 22px;}}
+
+/* topbar */
+.topbar{position:sticky; top:0; z-index:50; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); background:rgba(11,20,34,.78); border-bottom:1px solid var(--rule-soft);}
+.topbar-inner{display:flex; align-items:center; justify-content:space-between; padding:14px 36px; max-width:1280px; margin:0 auto;}
+.topbar-brand{display:flex; align-items:center; gap:12px;}
+.topbar-brand img{height:26px;}
+.topbar-brand .name{font-family:'Fraunces', serif; font-variation-settings:"opsz" 18, "wght" 500; font-size:18px; letter-spacing:-.01em;}
+.topbar nav{display:flex; gap:30px;}
+.topbar nav a{font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); padding:6px 0; transition:color .2s;}
+.topbar nav a:hover{color:var(--accent-bright);}
+.topbar nav a.current{color:var(--accent);}
+@media (max-width:780px){.topbar nav{display:none;}}
+
+/* page head */
+.page-head{padding:100px 0 80px; border-bottom:1px solid var(--rule);}
+.page-head .eyebrow{font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--accent); display:flex; align-items:center; gap:14px; margin-bottom:26px;}
+.page-head .eyebrow::before{content:""; width:32px; height:1px; background:var(--accent);}
+.page-head h1{margin:0 0 26px;
+  font-family:'Fraunces', serif;
+  font-variation-settings:"SOFT" 30, "opsz" 144, "wght" 360;
+  font-size: clamp(54px, 8vw, 124px);
+  line-height:.9; letter-spacing:-.035em;}
+.page-head h1 em{font-style:italic; color:var(--accent); font-variation-settings:"SOFT" 100, "opsz" 144, "wght" 320;}
+.page-head p{max-width:640px; font-size:19px; color:var(--ink-soft); line-height:1.6;}
+
+/* category section */
+.cat{padding:90px 0; border-bottom:1px solid var(--rule);}
+@media (max-width:700px){.cat{padding:60px 0;}}
+.cat-head{
+  display:flex; justify-content:space-between; align-items:end; gap:30px;
+  margin-bottom:40px;
+}
+.cat-head h2{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"SOFT" 30, "opsz" 96, "wght" 380;
+  font-size: clamp(34px, 4.5vw, 56px);
+  line-height:1; letter-spacing:-.02em;
+  margin:0;
+}
+.cat-head h2 em{font-style:italic; color:var(--accent); font-variation-settings:"SOFT" 100, "opsz" 96, "wght" 320;}
+.cat-head .lab{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink-mute);
+  text-align:right;
+}
+@media (max-width:700px){.cat-head{flex-direction:column; align-items:start; gap:8px;} .cat-head .lab{text-align:left;}}
+
+/* hero photo (one big shot per section if needed) */
+.hero-shot{
+  margin-bottom:40px;
+  position:relative;
+  border:1px solid var(--rule);
+  overflow:hidden;
+}
+.hero-shot img{width:100%; height:auto; max-height:75vh; object-fit:cover;}
+.hero-shot .cap{
+  position:absolute; bottom:0; left:0; right:0;
+  padding:24px 30px;
+  background:linear-gradient(to top, rgba(11,20,34,.92), transparent);
+  display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink);
+}
+.hero-shot .cap b{color:var(--accent);}
+
+/* mosaic */
+.mosaic{
+  display:grid;
+  grid-template-columns:repeat(12, 1fr);
+  grid-auto-rows: 110px;
+  gap:12px;
+}
+.mosaic figure{
+  margin:0; position:relative; overflow:hidden;
+  border:1px solid var(--rule); background:var(--bg-2);
+  transition:transform .35s, border-color .25s;
+}
+.mosaic figure:hover{transform:translateY(-3px); border-color:var(--accent);}
+.mosaic figure img{width:100%; height:100%; object-fit:cover; transition:transform .55s;}
+.mosaic figure:hover img{transform:scale(1.04);}
+.mosaic figcaption{
+  position:absolute; bottom:0; left:0; right:0;
+  padding:10px 14px;
+  background:linear-gradient(to top, rgba(11,20,34,.95), transparent);
+  font-family:'JetBrains Mono', monospace;
+  font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-soft);
+  display:flex; justify-content:space-between; gap:10px;
+  opacity:0; transition:opacity .25s;
+}
+.mosaic figure:hover figcaption{opacity:1;}
+.mosaic figcaption b{color:var(--accent);}
+
+/* mosaic sizes — try varied for editorial feel */
+.m-12-3{grid-column:span 12; grid-row:span 3;}
+.m-8-3{grid-column:span 8; grid-row:span 3;}
+.m-7-3{grid-column:span 7; grid-row:span 3;}
+.m-6-3{grid-column:span 6; grid-row:span 3;}
+.m-6-2{grid-column:span 6; grid-row:span 2;}
+.m-5-3{grid-column:span 5; grid-row:span 3;}
+.m-5-2{grid-column:span 5; grid-row:span 2;}
+.m-4-3{grid-column:span 4; grid-row:span 3;}
+.m-4-2{grid-column:span 4; grid-row:span 2;}
+.m-3-2{grid-column:span 3; grid-row:span 2;}
+.m-3-3{grid-column:span 3; grid-row:span 3;}
+
+@media (max-width:900px){
+  .mosaic{grid-template-columns:repeat(6, 1fr); grid-auto-rows:120px;}
+  .m-12-3{grid-column:span 6; grid-row:span 3;}
+  .m-8-3, .m-7-3, .m-6-3, .m-6-2{grid-column:span 6; grid-row:span 2;}
+  .m-5-3, .m-5-2, .m-4-3, .m-4-2{grid-column:span 3; grid-row:span 2;}
+  .m-3-2, .m-3-3{grid-column:span 3; grid-row:span 2;}
+}
+@media (max-width:520px){
+  .mosaic{grid-template-columns:repeat(2,1fr); grid-auto-rows:140px;}
+  .mosaic figure{grid-column:span 2 !important; grid-row:span 1 !important;}
+  .m-12-3, .m-8-3, .m-7-3{grid-row:span 2 !important;}
+}
+
+footer{background:var(--bg-2); border-top:1px solid var(--rule); padding:50px 0;}
+footer .row{display:flex; justify-content:space-between; flex-wrap:wrap; gap:14px;
+  font-family:'JetBrains Mono', monospace; font-size:11px;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--ink-mute);}
+footer .row a{color:var(--ink-soft);}
+footer .row a:hover{color:var(--accent);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="topbar-brand" href="index.html">
+      <img src="assets/mark.png" alt="Mecha-Mix mark" />
+      <span class="name">Mecha-Mix</span>
+    </a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="engineering.html">Engineering</a>
+      <a href="gallery.html" class="current">Gallery</a>
+      <a href="report.html">Report</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="page-head">
+    <div class="eyebrow">§ 05 — Gallery</div>
+    <h1 class="serif">At the <em>showcase</em>.</h1>
+    <p>The NYU Tandon Senior Design Showcase, May 5, 2026. Photographs by the team and the event's professional photographer.</p>
+  </div>
+</div>
+
+<!-- ============ SECTION 1: HERO MOMENT ============ -->
+<section class="cat">
+  <div class="wrap">
+    <div class="cat-head">
+      <h2 class="serif">The <em>team</em></h2>
+      <div class="lab">Brooklyn · May 2026</div>
+    </div>
+
+    <figure class="hero-shot">
+      <img src="assets/showcase/team-lineup.jpg" alt="The five members of The Alchemists lined up at the showcase" />
+      <figcaption class="cap">
+        <span>The Alchemists — Jason · Anthony · Sahil · Youssef · Mihir</span>
+        <b>Senior Design Showcase</b>
+      </figcaption>
+    </figure>
+
+    <div class="mosaic">
+      <figure class="m-7-3">
+        <img src="assets/showcase/team-with-poster.jpg" alt="The team with their poster, holding cocktail shakers" />
+        <figcaption><span>With the poster</span><b>Group</b></figcaption>
+      </figure>
+      <figure class="m-5-3">
+        <img src="assets/showcase/team-with-drink.jpg" alt="Three of the team holding a red drink the machine just poured" />
+        <figcaption><span>First pour at the booth</span><b>Action</b></figcaption>
+      </figure>
+      <figure class="m-4-2">
+        <img src="assets/showcase/team-portrait-2.jpg" alt="Closeup portrait, gesturing" />
+        <figcaption><span>Portrait</span><b>Candid</b></figcaption>
+      </figure>
+      <figure class="m-4-2">
+        <img src="assets/showcase/team-portrait-3.jpg" alt="Closeup portrait" />
+        <figcaption><span>Portrait</span><b>Candid</b></figcaption>
+      </figure>
+      <figure class="m-4-2">
+        <img src="assets/showcase/conversation-1.jpg" alt="Two of the team in conversation" />
+        <figcaption><span>Conversation</span><b>Booth</b></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 2: THE MACHINE IN ACTION ============ -->
+<section class="cat">
+  <div class="wrap">
+    <div class="cat-head">
+      <h2 class="serif">The <em>machine</em>, in action</h2>
+      <div class="lab">Pouring · Demo · Booth</div>
+    </div>
+
+    <div class="mosaic">
+      <figure class="m-6-3">
+        <img src="assets/showcase/machine-pouring.jpg" alt="The machine dispensing a red drink, touchscreen visible" />
+        <figcaption><span>Dispensing</span><b>Live demo</b></figcaption>
+      </figure>
+      <figure class="m-6-3">
+        <img src="assets/showcase/booth-demo.jpg" alt="Wide shot of the booth setup with bottles and the machine" />
+        <figcaption><span>Booth setup</span><b>Wide</b></figcaption>
+      </figure>
+      <figure class="m-4-3">
+        <img src="assets/showcase/drink-handoff.jpg" alt="Showing a finished drink to a visitor" />
+        <figcaption><span>Handoff to visitor</span><b>Demo</b></figcaption>
+      </figure>
+      <figure class="m-4-3">
+        <img src="assets/showcase/explaining-machine.jpg" alt="Team member explaining the machine to attendees" />
+        <figcaption><span>Explaining the mechanism</span><b>Demo</b></figcaption>
+      </figure>
+      <figure class="m-4-3">
+        <img src="assets/showcase/two-with-shaker.jpg" alt="Two team members holding a cocktail shaker" />
+        <figcaption><span>With the shaker</span><b>Portrait</b></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 3: VISITORS AND CONVERSATIONS ============ -->
+<section class="cat">
+  <div class="wrap">
+    <div class="cat-head">
+      <h2 class="serif">Visitors &amp; <em>conversations</em></h2>
+      <div class="lab">Pitches · Q&A · Reactions</div>
+    </div>
+
+    <div class="mosaic">
+      <figure class="m-5-3">
+        <img src="assets/showcase/explaining-to-visitor.jpg" alt="Team member explaining the project to a visitor" />
+        <figcaption><span>Pitching the project</span><b>Visitor</b></figcaption>
+      </figure>
+      <figure class="m-4-3">
+        <img src="assets/showcase/team-engaged.jpg" alt="Team gesturing while presenting" />
+        <figcaption><span>Animated demo</span><b>Q&amp;A</b></figcaption>
+      </figure>
+      <figure class="m-3-3">
+        <img src="assets/showcase/interview.jpg" alt="Talking with visitors carrying bags" />
+        <figcaption><span>Interview</span><b>Visitors</b></figcaption>
+      </figure>
+      <figure class="m-6-2">
+        <img src="assets/showcase/poster-presentation.jpg" alt="Team members at the poster" />
+        <figcaption><span>Poster presentation</span><b>Booth</b></figcaption>
+      </figure>
+      <figure class="m-3-2">
+        <img src="assets/showcase/candid-1.jpg" alt="Candid moment" />
+        <figcaption><span>Candid</span><b>Mid-event</b></figcaption>
+      </figure>
+      <figure class="m-3-2">
+        <img src="assets/showcase/group-with-cocktail.jpg" alt="Group socializing with the finished cocktail" />
+        <figcaption><span>Sampling the result</span><b>Tasting</b></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 4: CAD & ENGINEERING ============ -->
+<section class="cat" style="border-bottom:none;">
+  <div class="wrap">
+    <div class="cat-head">
+      <h2 class="serif">CAD &amp; <em>renders</em></h2>
+      <div class="lab">Onshape · ANSYS · KiCad</div>
+    </div>
+
+    <div class="mosaic">
+      <figure class="m-6-3">
+        <img src="assets/prototype-iso.png" alt="Isometric render of the assembled Mecha-Mix" />
+        <figcaption><span>Assembled, isometric</span><b>CAD</b></figcaption>
+      </figure>
+      <figure class="m-6-3">
+        <img src="assets/cfd-streamlines.png" alt="CFD airflow streamlines through the cooling chamber" />
+        <figcaption><span>CFD streamlines</span><b>ANSYS</b></figcaption>
+      </figure>
+      <figure class="m-4-3">
+        <img src="assets/cad-front-internal.png" alt="Front internal CAD view" />
+        <figcaption><span>Front internal</span><b>CAD</b></figcaption>
+      </figure>
+      <figure class="m-4-3">
+        <img src="assets/cad-side-internal.png" alt="Side internal CAD view" />
+        <figcaption><span>Side internal</span><b>TEC</b></figcaption>
+      </figure>
+      <figure class="m-4-3">
+        <img src="assets/cad-top-internal.png" alt="Top-down internal CAD layout" />
+        <figcaption><span>Top-down zoning</span><b>CAD</b></figcaption>
+      </figure>
+      <figure class="m-6-3">
+        <img src="assets/cad-mixing-section.png" alt="Mixing chamber cross-section showing impeller" />
+        <figcaption><span>Mixing chamber, V-bottom</span><b>Section</b></figcaption>
+      </figure>
+      <figure class="m-6-3">
+        <img src="assets/ui-touchscreen.jpg" alt="Touchscreen UI splash screen design" />
+        <figcaption><span>Touchscreen UI</span><b>UX</b></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="row">
+      <div>© 2026 The Alchemists · NYU Tandon</div>
+      <div>
+        <a href="index.html">Home</a> · 
+        <a href="engineering.html">Engineering</a> · 
+        <a href="report.html">Report</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

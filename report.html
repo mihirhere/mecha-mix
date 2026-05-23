@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Report — Mecha-Mix</title>
+<meta name="description" content="The full 16-page Mecha-Mix Final Design Report, embedded." />
+<link rel="icon" type="image/png" href="assets/mark.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#0B1422; --bg-2:#101B30; --bg-3:#172642;
+  --ink:#F1E6CE; --ink-soft:#CCBFA3; --ink-mute:#7B879D;
+  --rule:#22314D; --rule-soft:#19243A;
+  --accent:#E08438; --accent-bright:#F09B52;
+}
+*{box-sizing:border-box}
+html,body{margin:0; padding:0; background:var(--bg); color:var(--ink); font-family:'DM Sans', system-ui, sans-serif; -webkit-font-smoothing:antialiased;}
+body{overflow-x:hidden;}
+a{color:inherit; text-decoration:none;}
+.serif{font-family:'Fraunces', Georgia, serif;}
+.mono{font-family:'JetBrains Mono', monospace;}
+img{max-width:100%; display:block;}
+
+.wrap{max-width:1280px; margin:0 auto; padding:0 36px;}
+@media (max-width:700px){.wrap{padding:0 22px;}}
+
+/* topbar (shared) */
+.topbar{position:sticky; top:0; z-index:50;
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  background:rgba(11,20,34,.78);
+  border-bottom:1px solid var(--rule-soft);}
+.topbar-inner{display:flex; align-items:center; justify-content:space-between;
+  padding:14px 36px; max-width:1280px; margin:0 auto;}
+.topbar-brand{display:flex; align-items:center; gap:12px;}
+.topbar-brand img{height:26px;}
+.topbar-brand .name{font-family:'Fraunces', serif; font-variation-settings:"opsz" 18, "wght" 500; font-size:18px; letter-spacing:-.01em;}
+.topbar nav{display:flex; gap:30px;}
+.topbar nav a{font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); padding:6px 0; transition:color .2s;}
+.topbar nav a:hover{color:var(--accent-bright);}
+.topbar nav a.current{color:var(--accent);}
+@media (max-width:780px){.topbar nav{display:none;}}
+
+/* page head */
+.report-head{
+  padding:60px 0 40px;
+  border-bottom:1px solid var(--rule);
+}
+.report-head .eyebrow{
+  font-family:'JetBrains Mono', monospace; font-size:11px;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--accent);
+  display:flex; align-items:center; gap:14px; margin-bottom:24px;
+}
+.report-head .eyebrow::before{content:""; width:32px; height:1px; background:var(--accent);}
+.report-head .top{
+  display:flex; justify-content:space-between; align-items:end; gap:30px; flex-wrap:wrap;
+}
+.report-head h1{
+  margin:0;
+  font-family:'Fraunces', serif;
+  font-variation-settings:"SOFT" 30, "opsz" 144, "wght" 380;
+  font-size: clamp(44px, 6vw, 88px);
+  line-height:.95; letter-spacing:-.03em;
+}
+.report-head h1 em{font-style:italic; color:var(--accent); font-variation-settings:"SOFT" 100, "opsz" 144, "wght" 320;}
+.report-head .actions{
+  display:flex; gap:14px; flex-wrap:wrap;
+}
+.report-head .actions a{
+  display:inline-flex; align-items:center; gap:10px;
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink);
+  border:1px solid var(--rule);
+  padding:13px 22px;
+  transition:all .22s;
+}
+.report-head .actions a:hover{background:var(--accent); border-color:var(--accent); color:var(--bg);}
+.report-head .actions a span{color:var(--accent); transition:color .22s;}
+.report-head .actions a:hover span{color:var(--bg);}
+
+.report-meta{
+  display:grid; grid-template-columns:repeat(4, 1fr);
+  border-top:1px solid var(--rule);
+  margin-top:32px;
+}
+.report-meta > div{
+  padding:18px 22px;
+  border-right:1px solid var(--rule);
+}
+.report-meta > div:last-child{border-right:none;}
+@media (max-width:780px){
+  .report-meta{grid-template-columns:repeat(2,1fr);}
+  .report-meta > div:nth-child(2){border-right:none;}
+  .report-meta > div:nth-child(-n+2){border-bottom:1px solid var(--rule);}
+}
+.report-meta .k{font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-mute);}
+.report-meta .v{font-family:'Fraunces', serif; font-variation-settings:"opsz" 22, "wght" 460; font-size:18px; color:var(--ink); margin-top:6px; letter-spacing:-.005em;}
+
+/* PDF viewer */
+.viewer-wrap{
+  padding:30px 0 80px;
+}
+.viewer{
+  border:1px solid var(--rule);
+  background:var(--bg-2);
+  height:calc(100vh - 80px);
+  min-height:600px;
+  overflow:hidden;
+}
+.viewer object{
+  width:100%; height:100%;
+  display:block;
+  background:#fff;
+}
+.viewer-fallback{
+  padding:80px 36px;
+  text-align:center;
+  background:var(--bg-2);
+  height:100%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
+.viewer-fallback h3{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"opsz" 36, "wght" 460;
+  font-size:24px; margin:0 0 12px;
+}
+.viewer-fallback p{color:var(--ink-soft); margin:0 0 22px; max-width:480px;}
+.viewer-fallback a{
+  display:inline-flex; align-items:center; gap:10px;
+  font-family:'JetBrains Mono', monospace;
+  font-size:12px; letter-spacing:.2em; text-transform:uppercase;
+  background:var(--accent); color:var(--bg);
+  padding:16px 24px;
+}
+
+.mobile-notice{
+  display:none;
+  padding:24px;
+  background:var(--bg-2);
+  border:1px solid var(--rule);
+  border-left:3px solid var(--accent);
+  margin-bottom:24px;
+  font-size:14px; color:var(--ink-soft);
+}
+.mobile-notice b{color:var(--ink);}
+@media (max-width:780px){.mobile-notice{display:block;}}
+
+/* footer */
+footer{background:var(--bg-2); border-top:1px solid var(--rule); padding:50px 0;}
+footer .row{display:flex; justify-content:space-between; flex-wrap:wrap; gap:14px;
+  font-family:'JetBrains Mono', monospace; font-size:11px;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--ink-mute);}
+footer .row a{color:var(--ink-soft);}
+footer .row a:hover{color:var(--accent);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="topbar-brand" href="index.html">
+      <img src="assets/mark.png" alt="Mecha-Mix mark" />
+      <span class="name">Mecha-Mix</span>
+    </a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="engineering.html">Engineering</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="report.html" class="current">Report</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="report-head">
+    <div class="eyebrow">§ 06 — Primary Source</div>
+    <div class="top">
+      <h1 class="serif">The full <em>design report</em></h1>
+      <div class="actions">
+        <a href="documents/Mecha-Mix_Final_Design_Report.pdf" target="_blank" rel="noopener">
+          Open in new tab <span>↗</span>
+        </a>
+        <a href="documents/Mecha-Mix_Final_Design_Report.pdf" download>
+          Download PDF <span>↓</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="report-meta">
+      <div><div class="k">Pages</div><div class="v">16</div></div>
+      <div><div class="k">Format</div><div class="v">PDF · 10.5 MB</div></div>
+      <div><div class="k">Date</div><div class="v">May 2026</div></div>
+      <div><div class="k">Authors</div><div class="v">The Alchemists</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="viewer-wrap">
+    <div class="mobile-notice">
+      <b>On mobile?</b> PDF previews on phones can be slow. <a href="documents/Mecha-Mix_Final_Design_Report.pdf" target="_blank" style="color:var(--accent); border-bottom:1px solid var(--accent);">Open the PDF in a new tab</a> for a smoother experience.
+    </div>
+
+    <div class="viewer">
+      <object data="documents/Mecha-Mix_Final_Design_Report.pdf#view=FitH&toolbar=1" type="application/pdf" width="100%" height="100%" aria-label="Mecha-Mix Final Design Report">
+        <div class="viewer-fallback">
+          <h3 class="serif">PDF preview not supported</h3>
+          <p>Your browser doesn't support inline PDFs. You can still open or download the full report.</p>
+          <a href="documents/Mecha-Mix_Final_Design_Report.pdf" target="_blank">Open PDF ↗</a>
+        </div>
+      </object>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="row">
+      <div>© 2026 The Alchemists · NYU Tandon</div>
+      <div>
+        <a href="index.html">Home</a> · 
+        <a href="engineering.html">Engineering</a> · 
+        <a href="gallery.html">Gallery</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

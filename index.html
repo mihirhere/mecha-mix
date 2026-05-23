@@ -1,0 +1,1206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mecha-Mix — The Alchemists · NYU Tandon Senior Design</title>
+<meta name="description" content="An automated mixologist machine engineered to ±0.1 mL dispensing accuracy by Jason He, Anthony Huanca, Sahil Krishnani, Youssef Mikhaiil, and Mihir Pabby — NYU Tandon Senior Design 2026." />
+<link rel="icon" type="image/png" href="assets/mark.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#0B1422;
+  --bg-2:#101B30;
+  --bg-3:#172642;
+  --ink:#F1E6CE;
+  --ink-soft:#CCBFA3;
+  --ink-mute:#7B879D;
+  --rule:#22314D;
+  --rule-soft:#19243A;
+  --accent:#E08438;
+  --accent-bright:#F09B52;
+  --accent-deep:#B8651E;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'DM Sans', system-ui, sans-serif;
+  font-size:17px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.95  0 0 0 0 0.9  0 0 0 0 0.81  0 0 0 0.055 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  mix-blend-mode:overlay; opacity:.6; z-index:1000;
+}
+a{color:inherit; text-decoration:none}
+img{max-width:100%; display:block}
+
+.wrap{max-width:1280px; margin:0 auto; padding:0 36px;}
+.wrap-narrow{max-width:1100px; margin:0 auto; padding:0 36px;}
+@media (max-width:700px){
+  .wrap, .wrap-narrow{padding:0 22px;}
+}
+
+.serif{font-family:'Fraunces', Georgia, serif;}
+.mono{font-family:'JetBrains Mono', monospace;}
+h1,h2,h3,h4,h5{margin:0; font-weight:400;}
+
+/* ============================ TOP BAR ============================ */
+.topbar{
+  position:sticky; top:0; z-index:50;
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  background:rgba(11,20,34,.78);
+  border-bottom:1px solid var(--rule-soft);
+}
+.topbar-inner{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 36px;
+  max-width:1280px; margin:0 auto;
+}
+.topbar-brand{display:flex; align-items:center; gap:12px;}
+.topbar-brand img{height:26px; width:auto;}
+.topbar-brand .name{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"opsz" 18, "wght" 500;
+  font-size:18px; letter-spacing:-.01em;
+}
+.topbar nav{display:flex; gap:30px;}
+.topbar nav a{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink-soft);
+  position:relative; padding:6px 0;
+  transition:color .2s;
+}
+.topbar nav a:hover{color:var(--accent-bright);}
+.topbar nav a.current{color:var(--accent);}
+.topbar nav a::after{
+  content:""; position:absolute; left:0; right:100%; bottom:-1px;
+  height:1px; background:var(--accent); transition:right .3s ease;
+}
+.topbar nav a:hover::after{right:0;}
+@media (max-width:780px){.topbar nav{display:none;}}
+
+/* ============================ HERO ============================ */
+.hero{
+  position:relative;
+  padding:80px 0 0;
+  overflow:hidden;
+}
+.hero-grid{
+  display:grid;
+  grid-template-columns: 1.05fr 1.4fr;
+  gap:60px;
+  align-items:center;
+}
+@media (max-width:980px){
+  .hero{padding:60px 0 0;}
+  .hero-grid{grid-template-columns:1fr; gap:40px;}
+}
+.hero-text{padding-bottom:90px;}
+.eyebrow{
+  display:inline-flex; align-items:center; gap:14px;
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--ink-mute);
+  margin-bottom:36px;
+}
+.eyebrow::before{
+  content:""; width:32px; height:1px; background:var(--accent);
+}
+.hero h1{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"SOFT" 30, "opsz" 144, "wght" 360;
+  font-size: clamp(58px, 7.5vw, 124px);
+  line-height:.9;
+  letter-spacing:-.035em;
+  margin:0 0 30px;
+}
+.hero h1 .em{
+  font-style:italic; color:var(--accent);
+  font-variation-settings:"SOFT" 100, "opsz" 144, "wght" 320;
+}
+.hero h1 small{
+  display:block;
+  font-size:.32em; line-height:1.3;
+  font-variation-settings:"SOFT" 30, "opsz" 18, "wght" 360;
+  font-style:normal; color:var(--ink-soft);
+  margin-top:14px; letter-spacing:-.005em;
+}
+.hero .lede{
+  max-width:540px;
+  font-size:18.5px; line-height:1.6;
+  color:var(--ink-soft);
+  margin:0 0 36px;
+}
+.hero .lede b{color:var(--ink); font-weight:500;}
+.hero .credit{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-mute);
+  display:flex; gap:8px 24px; flex-wrap:wrap;
+}
+.hero .credit b{color:var(--ink-soft); font-weight:500;}
+
+/* Hero photo collage — big team photo + asymmetric small */
+.hero-photo{
+  position:relative;
+  height: 100%;
+  min-height: 620px;
+}
+@media (max-width:980px){.hero-photo{min-height:auto; height:auto;}}
+.photo-main{
+  position:relative;
+  border:1px solid var(--rule);
+  background:var(--bg-2);
+  overflow:hidden;
+  box-shadow: 0 40px 100px rgba(0,0,0,.5);
+}
+.photo-main img{width:100%; height:auto; display:block;}
+.photo-main::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background: linear-gradient(180deg, transparent 60%, rgba(11,20,34,.45));
+}
+.photo-main .stamp{
+  position:absolute; bottom:20px; left:24px; right:24px;
+  display:flex; justify-content:space-between; align-items:end;
+  font-family:'JetBrains Mono', monospace;
+  font-size:10.5px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink);
+}
+.photo-main .stamp b{color:var(--accent);}
+
+/* ============================ LOGO STRIP ============================ */
+.logo-strip{
+  margin-top:-1px;
+  background:var(--bg-2);
+  border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);
+  padding:24px 0;
+}
+.logo-strip-inner{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:24px; flex-wrap:wrap;
+}
+.logo-strip .mark-block{
+  display:flex; align-items:center; gap:18px;
+}
+.logo-strip .mark-block img{height:48px;}
+.logo-strip .mark-block .text{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"SOFT" 30, "opsz" 36, "wght" 500;
+  font-size:28px; letter-spacing:-.02em;
+}
+.logo-strip .mark-block .sub{
+  font-family:'Fraunces', serif;
+  font-style:italic;
+  font-variation-settings:"SOFT" 100, "opsz" 18, "wght" 380;
+  font-size:14px; color:var(--ink-soft);
+  margin-top:2px;
+}
+.logo-strip .meta{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink-mute);
+  text-align:right;
+}
+.logo-strip .meta b{color:var(--accent); font-weight:500;}
+
+/* ============================ MARQUEE TICKER ============================ */
+.ticker{
+  border-bottom:1px solid var(--rule);
+  background:var(--bg);
+  overflow:hidden;
+  padding:22px 0;
+}
+.ticker-track{
+  display:inline-flex; gap:50px;
+  animation: marquee 55s linear infinite;
+  white-space:nowrap;
+  font-family:'JetBrains Mono', monospace;
+  font-size:12px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--ink-soft);
+}
+.ticker-track span{display:inline-flex; align-items:center; gap:50px;}
+.ticker-track span::after{
+  content:"✦"; color:var(--accent);
+}
+@keyframes marquee{from{transform:translateX(0)} to{transform:translateX(-50%)}}
+
+/* ============================ SECTION SHELL ============================ */
+section{padding:140px 0;}
+@media (max-width:780px){section{padding:80px 0;}}
+
+.section-no{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; letter-spacing:.2em; color:var(--accent);
+  text-transform:uppercase;
+  display:flex; align-items:center; gap:14px;
+  margin-bottom:18px;
+}
+.section-no::after{
+  content:""; flex:1; height:1px; background:var(--rule);
+}
+@media (min-width:780px){.section-no::after{display:none;}}
+
+.section-head{
+  display:grid; grid-template-columns: 1fr auto; gap:30px;
+  align-items:end; margin-bottom:60px;
+  border-bottom:1px solid var(--rule);
+  padding-bottom:30px;
+}
+.section-head h2{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"SOFT" 30, "opsz" 144, "wght" 380;
+  font-size: clamp(40px, 5.8vw, 78px);
+  line-height:.95; letter-spacing:-.025em;
+}
+.section-head h2 .em{
+  font-style:italic; color:var(--accent);
+  font-variation-settings:"SOFT" 100, "opsz" 144, "wght" 320;
+}
+.section-head .right{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink-mute);
+  text-align:right;
+  white-space:nowrap;
+}
+@media (max-width:780px){
+  .section-head{grid-template-columns:1fr; gap:14px;}
+  .section-head .right{text-align:left;}
+}
+
+/* ============================ STATEMENT ============================ */
+.statement{
+  padding:120px 0;
+  border-bottom:1px solid var(--rule);
+  border-top:1px solid var(--rule);
+  background:
+    radial-gradient(circle at 80% 50%, rgba(224,132,56,.06), transparent 60%),
+    var(--bg);
+}
+.statement h2{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"SOFT" 30, "opsz" 144, "wght" 360;
+  font-size: clamp(44px, 6.5vw, 96px);
+  line-height:1.02;
+  letter-spacing:-.03em;
+  max-width:1100px;
+}
+.statement h2 em{
+  font-style:italic; color:var(--accent);
+  font-variation-settings:"SOFT" 100, "opsz" 144, "wght" 320;
+}
+.statement .by{
+  display:flex; gap:60px; flex-wrap:wrap;
+  margin-top:50px;
+  padding-top:30px;
+  border-top:1px solid var(--rule);
+}
+.statement .by div{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink-mute);
+}
+.statement .by div b{
+  display:block; margin-top:6px;
+  color:var(--ink); font-weight:500;
+  font-family:'Fraunces', serif;
+  font-variation-settings:"opsz" 18, "wght" 500;
+  font-size:16px; letter-spacing:-.01em;
+  text-transform:none;
+}
+
+/* ============================ STATS ============================ */
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);
+}
+.stat{
+  padding:50px 36px;
+  border-right:1px solid var(--rule);
+  position:relative;
+}
+.stat:last-child{border-right:none;}
+@media (max-width:900px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .stat:nth-child(2){border-right:none}
+  .stat:nth-child(1), .stat:nth-child(2){border-bottom:1px solid var(--rule)}
+}
+@media (max-width:520px){
+  .stats{grid-template-columns:1fr;}
+  .stat{border-right:none; border-bottom:1px solid var(--rule)!important;}
+  .stat:last-child{border-bottom:none!important;}
+}
+.stat .lab{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:18px;
+}
+.stat .num{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"SOFT" 30, "opsz" 144, "wght" 360;
+  font-size: clamp(56px, 5.5vw, 86px);
+  line-height:.95;
+  letter-spacing:-.03em;
+  color:var(--ink);
+  margin-bottom:14px;
+}
+.stat .num .unit{
+  font-size:.36em; vertical-align:.4em;
+  color:var(--ink-soft);
+  font-variation-settings:"opsz" 18, "wght" 400;
+  margin-left:4px;
+}
+.stat .sub{
+  font-size:14px; color:var(--ink-soft);
+  max-width:280px;
+}
+
+/* ============================ THE STORY ============================ */
+.story{
+  display:grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap:80px;
+  align-items:start;
+}
+@media (max-width:980px){.story{grid-template-columns:1fr; gap:40px;}}
+
+.story aside{
+  position:sticky; top:90px;
+  padding-right:30px;
+}
+.story aside .label{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:14px;
+}
+.story aside h3{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"SOFT" 30, "opsz" 36, "wght" 380;
+  font-size:34px; line-height:1.05;
+  letter-spacing:-.02em;
+  margin-bottom:24px;
+}
+.story aside h3 em{font-style:italic; color:var(--accent); font-variation-settings:"SOFT" 100, "opsz" 36, "wght" 320;}
+.story aside dl{
+  margin:0;
+  border-top:1px solid var(--rule);
+}
+.story aside dl > div{
+  display:grid; grid-template-columns: 110px 1fr;
+  gap:18px;
+  padding:14px 0;
+  border-bottom:1px solid var(--rule);
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+}
+.story aside dt{color:var(--ink-mute);}
+.story aside dd{margin:0; color:var(--ink-soft);}
+
+.story .body p{
+  font-size:18px; line-height:1.65;
+  color:var(--ink-soft);
+  margin:0 0 26px;
+  max-width:680px;
+}
+.story .body p b{color:var(--ink); font-weight:500;}
+.story .body .drop{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"SOFT" 100, "opsz" 144, "wght" 360;
+  font-style:italic;
+  font-size:120px; line-height:.78;
+  float:left; color:var(--accent);
+  margin: 14px 18px -8px 0;
+}
+.story .body .pull{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"SOFT" 80, "opsz" 96, "wght" 320;
+  font-style:italic;
+  font-size: clamp(28px, 3.4vw, 44px);
+  line-height:1.18;
+  color:var(--ink);
+  margin:60px 0 50px;
+  padding:10px 0 10px 30px;
+  border-left:2px solid var(--accent);
+  max-width:700px;
+}
+.story .body .pull cite{
+  display:block;
+  font-family:'JetBrains Mono', monospace;
+  font-style:normal;
+  font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-mute);
+  margin-top:18px;
+}
+
+.story-photo{
+  margin:60px 0;
+  border:1px solid var(--rule);
+  overflow:hidden;
+  position:relative;
+}
+.story-photo img{width:100%; height:auto;}
+.story-photo .cap{
+  position:absolute; bottom:0; left:0; right:0;
+  padding:20px 24px;
+  background:linear-gradient(to top, rgba(11,20,34,.92), transparent);
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink);
+  display:flex; justify-content:space-between;
+}
+.story-photo .cap b{color:var(--accent);}
+
+/* ============================ SUBSYSTEMS ============================ */
+.subs{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:1px;
+  background:var(--rule);
+  border:1px solid var(--rule);
+}
+.sub{
+  background:var(--bg);
+  padding:48px 40px;
+  display:flex; flex-direction:column;
+  transition:background .25s;
+}
+.sub:hover{background:var(--bg-2);}
+@media (max-width:780px){.subs{grid-template-columns:1fr;}}
+.sub-no{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; color:var(--accent); letter-spacing:.18em;
+  margin-bottom:24px;
+}
+.sub h3{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"SOFT" 30, "opsz" 60, "wght" 380;
+  font-size: clamp(28px, 2.8vw, 38px);
+  line-height:1.05;
+  letter-spacing:-.015em;
+  margin-bottom:18px;
+}
+.sub h3 em{font-style:italic; color:var(--accent); font-variation-settings:"SOFT" 100, "opsz" 60, "wght" 320;}
+.sub p{
+  color:var(--ink-soft);
+  font-size:15.5px; line-height:1.6;
+  margin:0 0 28px;
+  flex:1;
+}
+.sub .specs{
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:10px 24px;
+  padding-top:24px;
+  border-top:1px solid var(--rule);
+  font-family:'JetBrains Mono', monospace;
+  font-size:11.5px;
+}
+.sub .specs > div{display:flex; justify-content:space-between; gap:10px;}
+.sub .specs .k{color:var(--ink-mute); letter-spacing:.08em;}
+.sub .specs .v{color:var(--ink); font-weight:500;}
+
+/* ============================ TEAM ============================ */
+.team-wrap{
+  display:grid; grid-template-columns: 1fr 1fr;
+  gap:40px;
+  align-items:center;
+}
+@media (max-width:900px){.team-wrap{grid-template-columns:1fr;}}
+.team-photo{
+  position:relative;
+  border:1px solid var(--rule);
+  overflow:hidden;
+}
+.team-photo img{width:100%; height:auto; display:block;}
+.team-bio h3{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"SOFT" 30, "opsz" 96, "wght" 380;
+  font-size: clamp(34px, 4vw, 54px);
+  line-height:1; letter-spacing:-.025em;
+  margin-bottom:24px;
+}
+.team-bio h3 em{font-style:italic; color:var(--accent); font-variation-settings:"SOFT" 100, "opsz" 96, "wght" 320;}
+.team-bio > p{
+  color:var(--ink-soft); font-size:17px; line-height:1.65;
+  margin:0 0 36px;
+  max-width:560px;
+}
+.roster{
+  display:grid; grid-template-columns:1fr;
+  border-top:1px solid var(--rule);
+}
+.roster > div{
+  display:grid; grid-template-columns: 1fr auto;
+  align-items:baseline; gap:24px;
+  padding:18px 0;
+  border-bottom:1px solid var(--rule);
+}
+.roster .name{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"opsz" 24, "wght" 460;
+  font-size:22px; letter-spacing:-.015em;
+}
+.roster .role{
+  font-family:'JetBrains Mono', monospace;
+  font-size:10.5px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink-mute);
+  text-align:right;
+}
+.team-note{
+  margin-top:24px;
+  font-family:'JetBrains Mono', monospace;
+  font-size:10.5px; color:var(--ink-mute);
+  letter-spacing:.12em; text-transform:uppercase;
+}
+
+/* ============================ TESTS / VALIDATION ============================ */
+.tests{
+  display:grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap:80px;
+  align-items:start;
+}
+@media (max-width:980px){.tests{grid-template-columns:1fr; gap:36px;}}
+.tests .intro p{
+  color:var(--ink-soft); font-size:17px; line-height:1.65;
+  margin:0 0 22px;
+  max-width:520px;
+}
+.tests .intro p b{color:var(--ink);}
+.tests .intro .pull{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"SOFT" 80, "opsz" 60, "wght" 320;
+  font-style:italic;
+  font-size:30px; line-height:1.2;
+  color:var(--ink);
+  margin:36px 0;
+  padding-left:24px;
+  border-left:2px solid var(--accent);
+}
+
+.results-table{
+  border:1px solid var(--rule);
+  background:var(--bg);
+}
+.results-table .row{
+  display:grid; grid-template-columns: 40px 1fr 140px 50px;
+  align-items:center;
+  gap:18px;
+  padding:18px 22px;
+  border-bottom:1px solid var(--rule);
+  transition:background .2s;
+}
+.results-table .row:hover{background:var(--bg-2);}
+.results-table .row:last-child{border-bottom:none;}
+.results-table .head{
+  background:var(--bg-2);
+  font-family:'JetBrains Mono', monospace;
+  font-size:10.5px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink-mute);
+}
+.results-table .num{
+  font-family:'JetBrains Mono', monospace;
+  font-size:13px; color:var(--ink-mute);
+}
+.results-table .name{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"opsz" 18, "wght" 460;
+  font-size:17px;
+}
+.results-table .val{
+  font-family:'JetBrains Mono', monospace;
+  font-size:13px; color:var(--ink); text-align:right;
+}
+.results-table .pass{
+  font-family:'JetBrains Mono', monospace;
+  font-size:13px; color:var(--accent); text-align:center;
+}
+
+/* ============================ SHOWCASE GRID ============================ */
+.showcase-grid{
+  display:grid;
+  grid-template-columns:repeat(12, 1fr);
+  grid-auto-rows: 130px;
+  gap:14px;
+}
+.showcase-grid a{
+  position:relative;
+  overflow:hidden;
+  border:1px solid var(--rule);
+  background:var(--bg-2);
+  transition: transform .35s ease, border-color .25s ease;
+}
+.showcase-grid a:hover{transform:translateY(-3px); border-color:var(--accent);}
+.showcase-grid a img{
+  width:100%; height:100%; object-fit:cover;
+  transition:transform .5s ease;
+}
+.showcase-grid a:hover img{transform:scale(1.05);}
+.showcase-grid a::after{
+  content:""; position:absolute; inset:0; background:linear-gradient(to top, rgba(11,20,34,.55), transparent 50%);
+  opacity:0; transition:opacity .25s;
+}
+.showcase-grid a:hover::after{opacity:1;}
+
+/* curated mosaic sizes */
+.sg-1{grid-column:span 7; grid-row:span 3;}
+.sg-2{grid-column:span 5; grid-row:span 2;}
+.sg-3{grid-column:span 5; grid-row:span 2;}
+.sg-4{grid-column:span 4; grid-row:span 2;}
+.sg-5{grid-column:span 4; grid-row:span 2;}
+.sg-6{grid-column:span 4; grid-row:span 2;}
+
+@media (max-width:900px){
+  .showcase-grid{grid-template-columns:repeat(6,1fr); grid-auto-rows:120px;}
+  .sg-1{grid-column:span 6; grid-row:span 3;}
+  .sg-2,.sg-3{grid-column:span 6; grid-row:span 2;}
+  .sg-4,.sg-5,.sg-6{grid-column:span 3; grid-row:span 2;}
+}
+@media (max-width:520px){
+  .showcase-grid{grid-template-columns:repeat(2,1fr); grid-auto-rows:140px;}
+  .sg-1{grid-column:span 2; grid-row:span 2;}
+  .sg-2,.sg-3,.sg-4,.sg-5,.sg-6{grid-column:span 2; grid-row:span 1;}
+}
+
+.showcase-cta{
+  text-align:center; margin-top:50px;
+}
+.showcase-cta a{
+  display:inline-flex; align-items:center; gap:14px;
+  font-family:'JetBrains Mono', monospace;
+  font-size:12px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--ink);
+  border:1px solid var(--rule);
+  padding:18px 28px;
+  transition:all .25s;
+}
+.showcase-cta a:hover{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:var(--bg);
+}
+.showcase-cta a span{color:var(--accent); transition:color .25s;}
+.showcase-cta a:hover span{color:var(--bg);}
+
+/* ============================ FOOTER ============================ */
+footer{
+  background:var(--bg-2);
+  border-top:1px solid var(--rule);
+  padding:80px 0 50px;
+  position:relative;
+  overflow:hidden;
+}
+.foot-mark{
+  position:absolute;
+  right: -50px; bottom: -50px;
+  opacity:.05;
+  pointer-events:none;
+}
+.foot-mark img{width:380px;}
+.foot-top{
+  display:grid; grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap:36px; margin-bottom:60px;
+}
+@media (max-width:780px){.foot-top{grid-template-columns:1fr 1fr; gap:30px;}}
+@media (max-width:520px){.foot-top{grid-template-columns:1fr; gap:24px;}}
+.foot-brand img{height:60px; margin-bottom:18px;}
+.foot-brand p{color:var(--ink-soft); font-size:14.5px; margin:0; max-width:340px;}
+.foot-col h5{
+  font-family:'JetBrains Mono', monospace;
+  font-size:10.5px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:18px;
+}
+.foot-col ul{margin:0; padding:0; list-style:none;}
+.foot-col li{padding:5px 0;}
+.foot-col a{
+  font-family:'DM Sans', sans-serif;
+  font-size:14px; color:var(--ink-soft);
+  border-bottom:1px solid transparent; padding-bottom:1px;
+  transition:color .2s, border-color .2s;
+}
+.foot-col a:hover{color:var(--accent); border-color:var(--accent);}
+.foot-bottom{
+  border-top:1px solid var(--rule);
+  padding-top:24px;
+  display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  font-family:'JetBrains Mono', monospace;
+  font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-mute);
+}
+
+/* ============================ REVEAL ============================ */
+.reveal{opacity:0; transform:translateY(28px); transition: opacity .9s ease, transform .9s ease;}
+.reveal.in{opacity:1; transform:none;}
+</style>
+</head>
+<body>
+
+<!-- ============================ TOP BAR ============================ -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="topbar-brand" href="index.html">
+      <img src="assets/mark.png" alt="Mecha-Mix mark" />
+      <span class="name">Mecha-Mix</span>
+    </a>
+    <nav>
+      <a href="index.html" class="current">Home</a>
+      <a href="engineering.html">Engineering</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="report.html">Report</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ============================ HERO ============================ -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div class="hero-text reveal">
+        <div class="eyebrow">NYU Tandon · Senior Design · 2026</div>
+        <h1 class="serif">
+          A bar<br>
+          in a <span class="em">box</span>.
+          <small>The automated mixologist, engineered to ±0.1 mL.</small>
+        </h1>
+        <p class="lede">
+          Mecha-Mix is a five-channel countertop drink machine that meters by displacement, chills by Peltier, mixes by direct-drive impeller, and cleans itself in place — built end-to-end in two semesters at the NYU Tandon MakerSpace.
+        </p>
+        <div class="credit">
+          <span>By <b>The Alchemists</b></span>
+          <span>Jason He · Anthony Huanca · Sahil Krishnani · Youssef Mikhaiil · Mihir Pabby</span>
+        </div>
+      </div>
+
+      <div class="hero-photo reveal">
+        <figure class="photo-main">
+          <img src="assets/showcase/team-with-poster.jpg" alt="The five-person Alchemists team holding cocktail shakers in front of the Mecha-Mix poster at the NYU Tandon Senior Design Showcase" />
+          <figcaption class="stamp">
+            <span>NYU Tandon Senior Design Showcase</span>
+            <b>MAY 2026</b>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ LOGO STRIP ============================ -->
+<div class="logo-strip">
+  <div class="wrap logo-strip-inner">
+    <div class="mark-block">
+      <img src="assets/mark.png" alt="Mecha-Mix" />
+      <div>
+        <div class="text serif">Mecha-Mix</div>
+        <div class="sub serif">by The Alchemists</div>
+      </div>
+    </div>
+    <div class="meta">
+      ME-UY 4113 · Mechanical &amp; Aerospace<br>
+      <b>$834</b> build · <b>8/8</b> tests passed · <b>±0.1 mL</b> accuracy
+    </div>
+  </div>
+</div>
+
+<!-- ============================ TICKER ============================ -->
+<div class="ticker">
+  <div class="ticker-track">
+    <span>±0.1 mL Volumetric Accuracy</span>
+    <span>8 / 8 Performance Tests Passed</span>
+    <span>5 Peristaltic Pump Channels</span>
+    <span>144 W Peltier TEC Cooling</span>
+    <span>&lt; 60 s Cycle Time</span>
+    <span>5 ± 2 °C Cold Storage</span>
+    <span>$834 Total Build Cost</span>
+    <span>NSF / ANSI 18 Compliant</span>
+    <span>±0.1 mL Volumetric Accuracy</span>
+    <span>8 / 8 Performance Tests Passed</span>
+    <span>5 Peristaltic Pump Channels</span>
+    <span>144 W Peltier TEC Cooling</span>
+    <span>&lt; 60 s Cycle Time</span>
+    <span>5 ± 2 °C Cold Storage</span>
+    <span>$834 Total Build Cost</span>
+    <span>NSF / ANSI 18 Compliant</span>
+  </div>
+</div>
+
+<!-- ============================ STATEMENT ============================ -->
+<section class="statement">
+  <div class="wrap-narrow reveal">
+    <h2 class="serif">
+      Manual bartending is <em>inconsistent</em>. Commercial robots are theatrical <em>but clunky</em>. We built the thing in between.
+    </h2>
+    <div class="by">
+      <div>Advisors<b>Prof. Sven Haverkamp<br>Prof. Dũng Lương</b></div>
+      <div>Course<b>ME-UY 4113 Section A</b></div>
+      <div>Duration<b>Aug 2025 — May 2026</b></div>
+      <div>Where<b>NYU Tandon MakerSpace</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ STATS ============================ -->
+<div class="stats reveal">
+  <div class="stat">
+    <div class="lab">Dispense Accuracy</div>
+    <div class="num serif">±0.1<span class="unit">mL</span></div>
+    <div class="sub">Positive-displacement peristaltic metering — viscosity-independent across all five channels.</div>
+  </div>
+  <div class="stat">
+    <div class="lab">Tests Passed</div>
+    <div class="num serif">8<span class="unit">/8</span></div>
+    <div class="sub">Cooling · Dosing · Mixing · Leak · Cleaning · Throughput · Seal · Vibration.</div>
+  </div>
+  <div class="stat">
+    <div class="lab">Build Cost</div>
+    <div class="num serif">$834</div>
+    <div class="sub">83% of the $1,000 capstone ceiling — $166 reserve.</div>
+  </div>
+  <div class="stat">
+    <div class="lab">Steady-State Cool</div>
+    <div class="num serif">4.8<span class="unit">°C</span></div>
+    <div class="sub">CFD-predicted 4.5 °C. Measured over a 2-hour test.</div>
+  </div>
+</div>
+
+<!-- ============================ STORY ============================ -->
+<section>
+  <div class="wrap">
+    <div class="section-no">§ 01 — Project</div>
+    <div class="section-head reveal">
+      <h2 class="serif">The <span class="em">project</span></h2>
+      <div class="right">Two semesters · Five engineers · One machine</div>
+    </div>
+
+    <div class="story">
+      <aside class="reveal">
+        <div class="label">At a glance</div>
+        <h3 class="serif">A countertop machine that pours <em>perfectly</em>, every time.</h3>
+        <dl>
+          <div><dt>Type</dt><dd>Capstone Prototype</dd></div>
+          <div><dt>Domain</dt><dd>Mechatronics</dd></div>
+          <div><dt>Cost</dt><dd>$834 / $1,000</dd></div>
+          <div><dt>Envelope</dt><dd>0.50 × 0.35 × 0.50 m³</dd></div>
+          <div><dt>Mass</dt><dd>12 kg max</dd></div>
+          <div><dt>Channels</dt><dd>5 (3 adaptive + 2 fixed)</dd></div>
+          <div><dt>Standards</dt><dd>NSF/ANSI 18 · FDA 21 CFR 174/177 · UL 1082</dd></div>
+        </dl>
+      </aside>
+
+      <div class="body reveal">
+        <p><span class="drop serif">T</span>he beverage industry has an inefficiency gap. Manual mixing is inconsistent and labor-bound; high-end machines are visually impressive but mechanically clunky, or fast but indifferent to taste. <b>Mecha-Mix closes that gap with the discipline of a real engineering system</b> — positive-displacement metering, validated thermal management, and a sanitation architecture that satisfies food-equipment code.</p>
+
+        <p>The system feeds five chilled ingredients through individually-driven food-grade tubing into a <b>CFD-redesigned V-bottom mixing chamber</b>, where a direct-coupled stainless impeller homogenizes the drink in under a second. A normally-closed solenoid pinch valve gates the nozzle as a fail-safe against gravity drip. A 144 W Peltier module — sized from a first-principles steady-state heat balance — holds the cold chamber at 5 ± 2 °C with significant thermal headroom.</p>
+
+        <figure class="story-photo">
+          <img src="assets/showcase/team-with-drink.jpg" alt="Three of the Alchemists hold a freshly-poured red drink at the showcase booth, the matte-black Mecha-Mix machine visible behind them" />
+          <figcaption class="cap">
+            <span>The first pour at the showcase</span>
+            <b>May 5, 2026</b>
+          </figcaption>
+        </figure>
+
+        <p class="pull">
+          “The final prototype passed all eight performance tests and was manufactured at a total component cost of $834.”
+          <cite>— Mecha-Mix Final Design Report, May 2026</cite>
+        </p>
+
+        <p>Control runs on an <b>Arduino Giga R1 WiFi</b> driving a finite-state machine — IDLE → SELECT → DISPENSE → MIX → SERVE → CLEAN — with a touchscreen UI, a WiFi-hosted recipe REST API, and a hardware-level fail-safe that defaults every valve to closed during boot via 10 kΩ pull-downs.</p>
+
+        <p>The whole machine is held together by a <b>welding-free aluminum T-slot frame</b> with hex-standoff corner brackets, designed around the senior design fabrication constraint that disallows welds. Plexiglass panels and a rear electronics bay isolate fluid from electronics; modular pump-bottle-valve channels make every wetted component serviceable without tools.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ SUBSYSTEMS ============================ -->
+<section style="padding-top:0;">
+  <div class="wrap">
+    <div class="section-no">§ 02 — Architecture</div>
+    <div class="section-head reveal">
+      <h2 class="serif">Six <span class="em">subsystems</span>, one machine</h2>
+      <div class="right">Cooling · Dispensing · Mixing<br>Cleaning · Control · Structure</div>
+    </div>
+
+    <div class="subs reveal">
+      <div class="sub">
+        <div class="sub-no">01 / Cooling</div>
+        <h3 class="serif">Solid-state <em>refrigeration</em></h3>
+        <p>A 144 W Peltier TEC assembly with dual-side fans and vacuum-insulated panels. CFD-validated airflow geometry directs cold air across all five bottle bases, eliminating the stagnant-zone bypass found in the original square layout.</p>
+        <div class="specs">
+          <div><span class="k">Capacity</span><span class="v">144 W</span></div>
+          <div><span class="k">Sensor</span><span class="v">DS18B20</span></div>
+          <div><span class="k">Control</span><span class="v">3–7 °C</span></div>
+          <div><span class="k">Stable at</span><span class="v">4.8 °C</span></div>
+        </div>
+      </div>
+
+      <div class="sub">
+        <div class="sub-no">02 / Dispensing</div>
+        <h3 class="serif">Positive-displacement <em>metering</em></h3>
+        <p>Five 12 V peristaltic pumps deliver each ingredient through isolated PE tubing. Output is mechanically fixed per revolution — independent of viscosity, temperature, or bottle fill level. Q = V<sub>d</sub> × n.</p>
+        <div class="specs">
+          <div><span class="k">Channels</span><span class="v">5 × peristaltic</span></div>
+          <div><span class="k">Drive</span><span class="v">PWM / MOSFET</span></div>
+          <div><span class="k">Accuracy</span><span class="v">±0.1 mL</span></div>
+          <div><span class="k">Tubing</span><span class="v">Food-grade PE</span></div>
+        </div>
+      </div>
+
+      <div class="sub">
+        <div class="sub-no">03 / Mixing</div>
+        <h3 class="serif">Direct-coupled <em>impeller</em></h3>
+        <p>A cylindrical V-bottom chamber — redesigned from CFD to eliminate corner dead zones — paired with a stainless impeller on a 12 V DC motor. FEA-validated factor of safety above 60 against fluid drag in Re ≈ 35 laminar flow.</p>
+        <div class="specs">
+          <div><span class="k">Dead volume</span><span class="v">−40%</span></div>
+          <div><span class="k">FoS (PLA)</span><span class="v">67.77</span></div>
+          <div><span class="k">Re regime</span><span class="v">Laminar</span></div>
+          <div><span class="k">Mix time</span><span class="v">&lt; 1 s</span></div>
+        </div>
+      </div>
+
+      <div class="sub">
+        <div class="sub-no">04 / Cleaning</div>
+        <h3 class="serif">Clean-In-Place <em>sanitation</em></h3>
+        <p>The same peristaltic pumps and tubing form the cleaning circuit — no extra hardware. A 2-minute quick-flush rinses between drinks; a 15-minute deep cycle with sanitizer and water serves end-of-day. Validated visually against a clear-water control.</p>
+        <div class="specs">
+          <div><span class="k">Quick clean</span><span class="v">&lt; 2 min</span></div>
+          <div><span class="k">Deep clean</span><span class="v">&lt; 15 min</span></div>
+          <div><span class="k">Standard</span><span class="v">NSF/ANSI 18</span></div>
+          <div><span class="k">Residue</span><span class="v">None visible</span></div>
+        </div>
+      </div>
+
+      <div class="sub">
+        <div class="sub-no">05 / Control</div>
+        <h3 class="serif">Embedded <em>state machine</em></h3>
+        <p>Arduino Giga R1 WiFi running an 8-file firmware stack: hardware abstraction, FSM, touchscreen UI, and WiFi recipe REST API. Hardware-level fail-safes hold every valve in NC default state at boot.</p>
+        <div class="specs">
+          <div><span class="k">MCU</span><span class="v">Giga R1 WiFi</span></div>
+          <div><span class="k">UI</span><span class="v">3.97″ touch</span></div>
+          <div><span class="k">API</span><span class="v">WiFi REST</span></div>
+          <div><span class="k">E-stop</span><span class="v">UI + REST</span></div>
+        </div>
+      </div>
+
+      <div class="sub">
+        <div class="sub-no">06 / Structure</div>
+        <h3 class="serif">No-weld <em>chassis</em></h3>
+        <p>Aluminum T-slot extrusions joined with T-nuts, corner brackets, and hex standoffs — a fully reconfigurable, tool-free skeleton that meets the no-welding capstone constraint without sacrificing rigidity.</p>
+        <div class="specs">
+          <div><span class="k">Frame</span><span class="v">T-slot Al</span></div>
+          <div><span class="k">Panels</span><span class="v">Plexiglass</span></div>
+          <div><span class="k">Mass</span><span class="v">12 kg max</span></div>
+          <div><span class="k">Joining</span><span class="v">Tool-free</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ TEAM ============================ -->
+<section style="padding-top:0;">
+  <div class="wrap">
+    <div class="section-no">§ 03 — Team</div>
+    <div class="section-head reveal">
+      <h2 class="serif">The <span class="em">Alchemists</span></h2>
+      <div class="right">Five mechanical engineers · One capstone</div>
+    </div>
+
+    <div class="team-wrap reveal">
+      <figure class="team-photo">
+        <img src="assets/showcase/team-lineup.jpg" alt="The five members of The Alchemists — Jason He, Anthony Huanca, Sahil Krishnani, Youssef Mikhaiil, and Mihir Pabby — at the NYU Tandon Senior Design Showcase" />
+      </figure>
+
+      <div class="team-bio">
+        <h3 class="serif">From <em>design</em> to <em>fabrication</em> to <em>showcase</em>.</h3>
+        <p>Five senior mechanical engineering students at NYU Tandon. Two semesters. One machine designed from first principles, fabricated in-house, validated against eight measurable performance specifications, and presented at the May 2026 Senior Design Showcase.</p>
+        <div class="roster">
+          <div><span class="name serif">Jason He</span><span class="role">Mech · CAD · Integration</span></div>
+          <div><span class="name serif">Anthony Huanca</span><span class="role">Mech · Mechatronics · Testing</span></div>
+          <div><span class="name serif">Sahil Krishnani</span><span class="role">CAD · FEA · Documentation</span></div>
+          <div><span class="name serif">Youssef Mikhaiil</span><span class="role">CFD · Thermal · Validation</span></div>
+          <div><span class="name serif">Mihir Pabby</span><span class="role">Firmware · Controls · UI / REST</span></div>
+        </div>
+        <div class="team-note">ⓘ Roles inferred — Alchemists, send me the real breakdown and I'll update.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ TESTS ============================ -->
+<section style="padding-top:0;">
+  <div class="wrap">
+    <div class="section-no">§ 04 — Validation</div>
+    <div class="section-head reveal">
+      <h2 class="serif">Eight tests, <span class="em">eight passes</span></h2>
+      <div class="right">Every spec instrumented · Every threshold met</div>
+    </div>
+
+    <div class="tests reveal">
+      <div class="intro">
+        <p>Every performance specification was reduced to a concrete pass/fail test with an instrumented threshold. <b>Every test passed.</b></p>
+        <p class="pull">We didn't write tests that would pass. We wrote thresholds that mattered to the customer.</p>
+        <p><b>Dose consistency</b> on a precision scale verified the ±0.1 mL spec across all five channels. <b>Static leak</b> sat the system idle for 30 minutes with the solenoid de-energized — zero drops. <b>Cleaning efficiency</b> was a side-by-side visual comparison against a clear-water control. The <b>Steady-State Cooling Test</b> tracked DS18B20 readings against a calibrated IR thermometer for two hours, and converged on 4.8 °C — directly tracking the CFD-predicted 4.5 °C minimum.</p>
+      </div>
+
+      <div class="results-table">
+        <div class="row head">
+          <span>#</span><span>Test</span><span style="text-align:right;">Result</span><span style="text-align:center;">Pass</span>
+        </div>
+        <div class="row">
+          <span class="num">01</span>
+          <span class="name serif">Steady-state cooling</span>
+          <span class="val">4.8 °C stable</span>
+          <span class="pass">✓</span>
+        </div>
+        <div class="row">
+          <span class="num">02</span>
+          <span class="name serif">Volumetric accuracy</span>
+          <span class="val">±0.1 mL</span>
+          <span class="pass">✓</span>
+        </div>
+        <div class="row">
+          <span class="num">03</span>
+          <span class="name serif">Mixing homogeneity</span>
+          <span class="val">&lt; 1 s cycle</span>
+          <span class="pass">✓</span>
+        </div>
+        <div class="row">
+          <span class="num">04</span>
+          <span class="name serif">Static valve leak</span>
+          <span class="val">0 / 30 min</span>
+          <span class="pass">✓</span>
+        </div>
+        <div class="row">
+          <span class="num">05</span>
+          <span class="name serif">Cleaning efficiency</span>
+          <span class="val">No bleed</span>
+          <span class="pass">✓</span>
+        </div>
+        <div class="row">
+          <span class="num">06</span>
+          <span class="name serif">Throughput cycle</span>
+          <span class="val">&lt; 60 s</span>
+          <span class="pass">✓</span>
+        </div>
+        <div class="row">
+          <span class="num">07</span>
+          <span class="name serif">Dynamic seal</span>
+          <span class="val">No ingress</span>
+          <span class="pass">✓</span>
+        </div>
+        <div class="row">
+          <span class="num">08</span>
+          <span class="name serif">Vibration stability</span>
+          <span class="val">15 runs · stable</span>
+          <span class="pass">✓</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ SHOWCASE TEASER ============================ -->
+<section style="padding-top:0;">
+  <div class="wrap">
+    <div class="section-no">§ 05 — Showcase</div>
+    <div class="section-head reveal">
+      <h2 class="serif">At the <span class="em">showcase</span></h2>
+      <div class="right">Brooklyn · May 5, 2026</div>
+    </div>
+
+    <div class="showcase-grid reveal">
+      <a href="gallery.html" class="sg-1">
+        <img src="assets/showcase/team-lineup.jpg" alt="The team lined up" />
+      </a>
+      <a href="gallery.html" class="sg-2">
+        <img src="assets/showcase/machine-pouring.jpg" alt="Machine pouring a red drink" />
+      </a>
+      <a href="gallery.html" class="sg-3">
+        <img src="assets/showcase/explaining-to-visitor.jpg" alt="Explaining to a visitor at the booth" />
+      </a>
+      <a href="gallery.html" class="sg-4">
+        <img src="assets/showcase/team-engaged.jpg" alt="Team gesturing during demo" />
+      </a>
+      <a href="gallery.html" class="sg-5">
+        <img src="assets/showcase/drink-handoff.jpg" alt="Handing a cocktail to a visitor" />
+      </a>
+      <a href="gallery.html" class="sg-6">
+        <img src="assets/showcase/booth-demo.jpg" alt="Wide shot of the booth setup" />
+      </a>
+    </div>
+
+    <div class="showcase-cta">
+      <a href="gallery.html">See the full gallery <span>→</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ FOOTER ============================ -->
+<footer>
+  <div class="foot-mark">
+    <img src="assets/mechamix-logo.png" alt="" aria-hidden="true" />
+  </div>
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="foot-brand">
+        <img src="assets/mechamix-logo.png" alt="Mecha-Mix by The Alchemists" />
+        <p>The senior design capstone of The Alchemists — five mechanical engineers at the NYU Tandon School of Engineering.</p>
+      </div>
+      <div class="foot-col">
+        <h5>Site</h5>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="engineering.html">Engineering</a></li>
+          <li><a href="gallery.html">Gallery</a></li>
+          <li><a href="report.html">Report</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h5>Documents</h5>
+        <ul>
+          <li><a href="report.html">Full Report</a></li>
+          <li><a href="documents/Mecha-Mix_Final_Design_Report.pdf" target="_blank">Report PDF</a></li>
+          <li><a href="documents/Mecha-Mix_Showcase_Poster.pdf" target="_blank">Poster PDF</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h5>Course</h5>
+        <ul>
+          <li>ME-UY 4113</li>
+          <li>NYU Tandon</li>
+          <li>Senior Design 2026</li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <div>© 2026 The Alchemists · NYU Tandon</div>
+      <div>Set in Fraunces &amp; DM Sans</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: 0.06 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>

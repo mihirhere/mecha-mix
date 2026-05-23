@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Engineering — Mecha-Mix</title>
+<meta name="description" content="First-principles derivations behind Mecha-Mix: peristaltic dispensing physics, TEC heat balance, Reynolds + FEA, power budget, firmware FSM." />
+<link rel="icon" type="image/png" href="assets/mark.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- KaTeX for proper math typography (bundled locally) -->
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true},{left: '\\(', right: '\\)', display: false},{left: '\\[', right: '\\]', display: true}], throwOnError: false});"></script>
+
+<style>
+:root{
+  --bg:#0B1422; --bg-2:#101B30; --bg-3:#172642;
+  --ink:#F1E6CE; --ink-soft:#CCBFA3; --ink-mute:#7B879D;
+  --rule:#22314D; --rule-soft:#19243A;
+  --accent:#E08438; --accent-bright:#F09B52; --accent-deep:#B8651E;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font-family:'DM Sans', system-ui, sans-serif;
+  font-size:17px; line-height:1.65; -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.95  0 0 0 0 0.9  0 0 0 0 0.81  0 0 0 0.055 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  mix-blend-mode:overlay; opacity:.6; z-index:1000;
+}
+a{color:inherit; text-decoration:none}
+img{max-width:100%; display:block}
+.serif{font-family:'Fraunces', Georgia, serif;}
+.mono{font-family:'JetBrains Mono', monospace;}
+h1,h2,h3,h4{margin:0; font-weight:400;}
+
+.wrap{max-width:1080px; margin:0 auto; padding:0 36px;}
+@media (max-width:700px){.wrap{padding:0 22px;}}
+
+/* topbar */
+.topbar{position:sticky; top:0; z-index:50;
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  background:rgba(11,20,34,.78);
+  border-bottom:1px solid var(--rule-soft);}
+.topbar-inner{display:flex; align-items:center; justify-content:space-between;
+  padding:14px 36px; max-width:1280px; margin:0 auto;}
+.topbar-brand{display:flex; align-items:center; gap:12px;}
+.topbar-brand img{height:26px;}
+.topbar-brand .name{font-family:'Fraunces', serif; font-variation-settings:"opsz" 18, "wght" 500; font-size:18px; letter-spacing:-.01em;}
+.topbar nav{display:flex; gap:30px;}
+.topbar nav a{font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); padding:6px 0; transition:color .2s;}
+.topbar nav a:hover{color:var(--accent-bright);}
+.topbar nav a.current{color:var(--accent);}
+@media (max-width:780px){.topbar nav{display:none;}}
+
+/* HERO header */
+.page-head{padding:100px 0 60px; border-bottom:1px solid var(--rule);}
+.page-head .eyebrow{font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--accent); display:flex; align-items:center; gap:14px; margin-bottom:30px;}
+.page-head .eyebrow::before{content:""; width:32px; height:1px; background:var(--accent);}
+.page-head h1{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"SOFT" 30, "opsz" 144, "wght" 360;
+  font-size: clamp(54px, 7vw, 110px);
+  line-height:.9; letter-spacing:-.03em;
+  margin-bottom:32px;
+}
+.page-head h1 em{font-style:italic; color:var(--accent); font-variation-settings:"SOFT" 100, "opsz" 144, "wght" 320;}
+.page-head p{max-width:720px; font-size:19px; color:var(--ink-soft); line-height:1.6; margin:0;}
+
+/* TOC */
+.toc{
+  display:grid; grid-template-columns:repeat(6,1fr);
+  gap:1px; background:var(--rule);
+  border:1px solid var(--rule);
+  margin:60px 0 0;
+}
+@media (max-width:900px){.toc{grid-template-columns:repeat(3,1fr);}}
+@media (max-width:560px){.toc{grid-template-columns:repeat(2,1fr);}}
+.toc a{
+  background:var(--bg-2);
+  padding:22px 14px;
+  text-align:center;
+  transition:background .25s, color .25s;
+}
+.toc a:hover{background:var(--bg-3);}
+.toc a .n{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; letter-spacing:.18em;
+  color:var(--accent); display:block; margin-bottom:8px;
+}
+.toc a .t{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"opsz" 18, "wght" 460;
+  font-size:16px; color:var(--ink);
+}
+.toc a:hover .t{color:var(--accent-bright);}
+
+/* section */
+section.eng{padding:120px 0; border-bottom:1px solid var(--rule);}
+@media (max-width:700px){section.eng{padding:80px 0;}}
+.eng-head{margin-bottom:48px;}
+.eng-head .lab{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--accent);
+  display:flex; align-items:center; gap:14px;
+  margin-bottom:18px;
+}
+.eng-head .lab::before{content:""; width:32px; height:1px; background:var(--accent);}
+.eng-head h2{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"SOFT" 30, "opsz" 144, "wght" 380;
+  font-size: clamp(40px, 5vw, 68px);
+  line-height:.98; letter-spacing:-.025em;
+}
+.eng-head h2 em{font-style:italic; color:var(--accent); font-variation-settings:"SOFT" 100, "opsz" 144, "wght" 320;}
+
+/* meta strip */
+.meta-strip{
+  display:grid; grid-template-columns:repeat(4,1fr);
+  border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);
+  margin-bottom:48px;
+}
+.meta-strip > div{
+  padding:22px 24px;
+  border-right:1px solid var(--rule);
+}
+.meta-strip > div:last-child{border-right:none;}
+@media (max-width:780px){
+  .meta-strip{grid-template-columns:repeat(2,1fr);}
+  .meta-strip > div:nth-child(2){border-right:none;}
+  .meta-strip > div:nth-child(-n+2){border-bottom:1px solid var(--rule);}
+}
+.meta-strip .k{
+  font-family:'JetBrains Mono', monospace;
+  font-size:10.5px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink-mute);
+}
+.meta-strip .v{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"opsz" 24, "wght" 460;
+  font-size:22px; color:var(--accent);
+  letter-spacing:-.01em;
+  margin-top:6px;
+}
+
+/* prose */
+.prose p{
+  color:var(--ink-soft);
+  font-size:18px; line-height:1.7;
+  margin:0 0 24px;
+  max-width:780px;
+}
+.prose p b{color:var(--ink); font-weight:500;}
+.prose h3{
+  font-family:'Fraunces', serif;
+  font-variation-settings:"opsz" 36, "wght" 460;
+  font-size:26px; margin:48px 0 16px;
+  letter-spacing:-.015em;
+  color:var(--ink);
+}
+
+/* equation block — uses KaTeX */
+.eq{
+  margin:38px 0;
+  padding:30px 36px;
+  background:var(--bg-2);
+  border:1px solid var(--rule);
+  border-left:3px solid var(--accent);
+  position:relative;
+  overflow-x:auto;
+}
+.eq .eq-label{
+  font-family:'JetBrains Mono', monospace;
+  font-size:10.5px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:18px;
+}
+.eq .eq-num{
+  position:absolute; right:32px; top:32px;
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; color:var(--ink-mute);
+  letter-spacing:.1em;
+}
+/* KaTeX color override for dark theme */
+.katex { color: var(--ink); font-size:1.15em; }
+.katex .mord{color:var(--ink);}
+.eq .katex-display{margin:0; text-align:left;}
+.eq .katex-display > .katex{display:inline-block; text-align:left;}
+
+/* inline-tag */
+.tag{
+  display:inline-flex; align-items:baseline; gap:6px;
+  padding:4px 10px;
+  background:var(--bg-2);
+  border:1px solid var(--rule);
+  font-family:'JetBrains Mono', monospace;
+  font-size:11.5px; color:var(--accent);
+  letter-spacing:.04em;
+  vertical-align:middle;
+}
+
+/* table */
+table.eng-table{
+  width:100%; border-collapse:collapse;
+  border:1px solid var(--rule);
+  margin:32px 0;
+}
+table.eng-table th, table.eng-table td{
+  padding:14px 18px; text-align:left;
+  border-bottom:1px solid var(--rule);
+  font-size:14.5px;
+}
+table.eng-table th{
+  background:var(--bg-2);
+  font-family:'JetBrains Mono', monospace;
+  font-size:10.5px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink-mute); font-weight:500;
+}
+table.eng-table td:not(:first-child), table.eng-table th:not(:first-child){text-align:right;}
+table.eng-table td.text{font-family:'Fraunces', serif; font-variation-settings:"opsz" 18, "wght" 460; font-size:16px; letter-spacing:-.005em;}
+table.eng-table td.mono{font-family:'JetBrains Mono', monospace; color:var(--ink);}
+table.eng-table tr:last-child td{border-bottom:none;}
+table.eng-table tfoot td{
+  background:var(--bg-2);
+  font-family:'JetBrains Mono', monospace;
+  color:var(--accent);
+  letter-spacing:.08em;
+}
+
+/* figure */
+figure.full{
+  margin:48px 0;
+  border:1px solid var(--rule);
+  background:var(--bg-2);
+  padding:32px;
+}
+figure.full img{
+  width:100%; height:auto;
+  max-height:560px; object-fit:contain;
+}
+figure.full figcaption{
+  border-top:1px solid var(--rule);
+  margin-top:24px; padding-top:16px;
+  display:flex; justify-content:space-between;
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-mute);
+}
+figure.full figcaption b{color:var(--accent);}
+
+/* FSM diagram */
+.fsm{
+  display:flex; gap:10px; align-items:center;
+  margin:40px 0;
+  border:1px solid var(--rule);
+  background:var(--bg-2);
+  padding:30px 22px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+.fsm .node{
+  padding:18px 22px;
+  border:1px solid var(--rule);
+  background:var(--bg);
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink);
+}
+.fsm .node.first{color:var(--accent); border-color:var(--accent);}
+.fsm .arrow{color:var(--accent); font-size:20px;}
+
+/* CTA footer */
+.eng-cta{
+  text-align:center;
+  padding:80px 0;
+  border-bottom:1px solid var(--rule);
+  background:var(--bg-2);
+}
+.eng-cta p{color:var(--ink-soft); max-width:480px; margin:0 auto 26px; font-size:17px;}
+.eng-cta a{
+  display:inline-flex; align-items:center; gap:14px;
+  font-family:'JetBrains Mono', monospace;
+  font-size:12px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--ink);
+  border:1px solid var(--rule);
+  padding:18px 28px;
+  transition:all .25s;
+}
+.eng-cta a:hover{background:var(--accent); border-color:var(--accent); color:var(--bg);}
+.eng-cta a span{color:var(--accent); transition:color .25s;}
+.eng-cta a:hover span{color:var(--bg);}
+
+/* footer */
+footer{background:var(--bg-2); border-top:1px solid var(--rule); padding:50px 0;}
+footer .row{display:flex; justify-content:space-between; flex-wrap:wrap; gap:14px;
+  font-family:'JetBrains Mono', monospace; font-size:11px;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--ink-mute);}
+footer .row a{color:var(--ink-soft);}
+footer .row a:hover{color:var(--accent);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="topbar-brand" href="index.html">
+      <img src="assets/mark.png" alt="Mecha-Mix mark" />
+      <span class="name">Mecha-Mix</span>
+    </a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="engineering.html" class="current">Engineering</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="report.html">Report</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="page-head">
+    <div class="eyebrow">§ 02 — Engineering Deep-Dive</div>
+    <h1 class="serif">First principles, <em>not</em><br>first guesses.</h1>
+    <p>Every subsystem in Mecha-Mix was sized from a governing equation before it was built. This page walks through the calculations behind the dispensing accuracy, cooling capacity, mixing torque, electrical budget, and embedded control logic.</p>
+
+    <nav class="toc">
+      <a href="#dispensing"><span class="n">01</span><span class="t">Dispensing</span></a>
+      <a href="#cooling"><span class="n">02</span><span class="t">Cooling</span></a>
+      <a href="#mixing"><span class="n">03</span><span class="t">Mixing</span></a>
+      <a href="#power"><span class="n">04</span><span class="t">Power</span></a>
+      <a href="#firmware"><span class="n">05</span><span class="t">Firmware</span></a>
+      <a href="#fabrication"><span class="n">06</span><span class="t">Fabrication</span></a>
+    </nav>
+  </div>
+
+  <!-- ============ 01 DISPENSING ============ -->
+  <section class="eng" id="dispensing">
+    <div class="eng-head">
+      <div class="lab">§ 01 / Dispensing</div>
+      <h2 class="serif">Peristaltic <em>dispensing</em></h2>
+    </div>
+
+    <div class="meta-strip">
+      <div><div class="k">Mechanism</div><div class="v">Peristaltic</div></div>
+      <div><div class="k">Accuracy</div><div class="v">±0.1 mL</div></div>
+      <div><div class="k">Channels</div><div class="v">5</div></div>
+      <div><div class="k">Control</div><div class="v">PWM / MOSFET</div></div>
+    </div>
+
+    <div class="prose">
+      <p>The accuracy specification — <b>±0.1 mL across any viscosity, temperature, and bottle fill level</b> — rules out time-based valves and gravity feeds. Both depend on flow rate, which depends on viscosity, head pressure, and tubing condition. A positive-displacement peristaltic pump sidesteps the whole problem: the volume per revolution is fixed by tube geometry and roller spacing, period.</p>
+
+      <div class="eq">
+        <div class="eq-label">Eq. 1 — Volumetric output</div>
+        <div class="eq-num">(1)</div>
+        $$Q = V_d \cdot n$$
+      </div>
+
+      <p>where <span class="tag">Q</span> is volumetric flow rate <span class="tag">[mL/s]</span>, <span class="tag">V<sub>d</sub></span> is the displaced volume per revolution (a constant set by tube ID and roller geometry), and <span class="tag">n</span> is rotational speed. Because V<sub>d</sub> is geometry-dependent and not pressure- or viscosity-dependent, the ±0.1 mL spec is achievable across all liquid types <em>without a feedback sensor</em>. Each pump channel is driven by a PWM signal from the Arduino Giga R1, so n is software-controlled and recipes execute digitally.</p>
+
+      <p>The dispensing test verified this experimentally — ten consecutive doses on every channel landed within the spec band, with variation imperceptible to the naked eye on a precision scale.</p>
+    </div>
+  </section>
+
+  <!-- ============ 02 COOLING ============ -->
+  <section class="eng" id="cooling">
+    <div class="eng-head">
+      <div class="lab">§ 02 / Cooling</div>
+      <h2 class="serif">Thermoelectric <em>cooling</em></h2>
+    </div>
+
+    <div class="meta-strip">
+      <div><div class="k">Module</div><div class="v">144 W TEC</div></div>
+      <div><div class="k">Operating ΔT</div><div class="v">~15 °C</div></div>
+      <div><div class="k">Max ΔT</div><div class="v">~65 °C</div></div>
+      <div><div class="k">Stable Temp</div><div class="v">4.8 °C</div></div>
+    </div>
+
+    <div class="prose">
+      <p>A compressor-based system was rejected on size, weight, noise, and refrigerant handling — all of which conflict with a countertop form factor. A Peltier TEC is solid-state, refrigerant-free, and can be bonded directly to the chassis.</p>
+
+      <div class="eq">
+        <div class="eq-label">Eq. 2 — Peltier cooling capacity</div>
+        <div class="eq-num">(2)</div>
+        $$Q_c = \alpha \, T_c \, I - \tfrac{1}{2} I^2 R - K \, \Delta T$$
+      </div>
+
+      <p>For the 144 W module at 12 A, the maximum achievable ΔT is approximately <b>65 °C</b>. The operating ΔT is only ~15 °C (20 °C ambient to 5 °C target), so the module runs with substantial thermal headroom.</p>
+
+      <p>The steady-state load is dominated by conduction through the plexiglass enclosure walls, set by Fourier's law:</p>
+
+      <div class="eq">
+        <div class="eq-label">Eq. 3 — Fourier conduction</div>
+        <div class="eq-num">(3)</div>
+        $$\dot{Q}_{cond} = \frac{k \cdot A \cdot \Delta T}{L}$$
+      </div>
+
+      <p>With <span class="tag">k = 0.19 W/m·K</span> (plexiglass), <span class="tag">A ≈ 0.35 m²</span>, <span class="tag">L = 0.006 m</span>, and <span class="tag">ΔT = 15 °C</span>:</p>
+
+      <div class="eq">
+        <div class="eq-label">Eq. 4 — Worked example</div>
+        <div class="eq-num">(4)</div>
+        $$\dot{Q}_{cond} = \frac{0.19 \times 0.35 \times 15}{0.006} \approx 166 \text{ W}$$
+      </div>
+
+      <p>That's right at the limit of the TEC's rating, which motivated the <b>vacuum-insulated panel</b> strategy — they reduce effective k by ~10×, dropping the conductive load to ~17 W. That's deep within the TEC's capacity and slashes the duty cycle.</p>
+
+      <h3 class="serif">CFD-driven geometry</h3>
+      <p>The first CFD pass showed cold air bypassing the lower bottle cavities — the system was technically cold but the bottles weren't being convected. The vent placement and internal geometry were redirected toward the bottles, eliminating the stagnant zones. The redesigned chamber converges on <b>4.5 °C in simulation</b> and held a measured <b>4.8 °C steady-state over two hours</b> in the validation test.</p>
+
+      <figure class="full">
+        <img src="assets/cfd-streamlines.png" alt="CFD streamlines showing airflow distribution through the cooling chamber" />
+        <figcaption>
+          <span>Fig. 1 — CFD streamlines, T<sub>min</sub> = 4.5 °C</span>
+          <b>Post-redesign geometry</b>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ 03 MIXING ============ -->
+  <section class="eng" id="mixing">
+    <div class="eng-head">
+      <div class="lab">§ 03 / Mixing</div>
+      <h2 class="serif">Reynolds, <em>torque</em>, FEA</h2>
+    </div>
+
+    <div class="meta-strip">
+      <div><div class="k">Geometry</div><div class="v">V-bottom cyl.</div></div>
+      <div><div class="k">Dead Volume</div><div class="v">−40%</div></div>
+      <div><div class="k">Reynolds</div><div class="v">Re ≈ 35</div></div>
+      <div><div class="k">Mix Time</div><div class="v">&lt; 1 s</div></div>
+    </div>
+
+    <div class="prose">
+      <p>The mixing problem looks simple — a motor and a stick — but the worst-case ingredient (a high-viscosity syrup at <span class="tag">μ = 0.5 Pa·s</span>, <span class="tag">ρ = 1300 kg/m³</span>) deserves verification. The Reynolds number sets the flow regime, the regime sets the Power Number, and the Power Number sets the torque.</p>
+
+      <div class="eq">
+        <div class="eq-label">Eq. 5 — Impeller Reynolds number</div>
+        <div class="eq-num">(5)</div>
+        $$Re = \frac{\rho \, n \, D^2}{\mu} = \frac{1300 \times 8.33 \times (0.04)^2}{0.5} = 34.6$$
+      </div>
+
+      <p>Re &lt; 100, so flow is <b>laminar</b>. That gives a Power Number K<sub>p</sub> ≈ 40, and:</p>
+
+      <div class="eq">
+        <div class="eq-label">Eq. 6 — Power required</div>
+        <div class="eq-num">(6)</div>
+        $$P = K_p \cdot \mu \cdot n^2 \cdot D^3 = 40 \times 0.5 \times (8.33)^2 \times (0.04)^3 = 0.089 \text{ W}$$
+      </div>
+
+      <div class="eq">
+        <div class="eq-label">Eq. 7 — Required torque</div>
+        <div class="eq-num">(7)</div>
+        $$T = \frac{P}{\omega} = \frac{0.089}{52.36} = 1.7 \text{ N·mm}$$
+      </div>
+
+      <p>The 12 V DC mixing motor is rated at <b>~500 N·mm</b>. The required torque is three orders of magnitude below capacity. <b>Massive margin.</b></p>
+
+      <h3 class="serif">FEA on the impeller</h3>
+      <p>With the load known (1.7 N·mm moment, fixed support at the motor coupling), an ANSYS static structural simulation compared Bambu PLA against Dental Resin. Both yielded Factor of Safety &gt; 60. PLA won on three counts: 32% less deformation than resin, lower cost, and faster iteration.</p>
+
+      <table class="eng-table">
+        <thead><tr><th>Material</th><th>Max Von Mises</th><th>Max Deformation</th><th>FoS</th></tr></thead>
+        <tbody>
+          <tr><td class="text">Bambu PLA</td><td class="mono">0.841 MPa</td><td class="mono">0.103 mm</td><td class="mono">67.77</td></tr>
+          <tr><td class="text">Dental Resin</td><td class="mono">0.838 MPa</td><td class="mono">0.136 mm</td><td class="mono">62.05</td></tr>
+        </tbody>
+      </table>
+
+      <figure class="full">
+        <img src="assets/cad-mixing-section.png" alt="Cross-section of the V-bottom mixing chamber with impeller" />
+        <figcaption>
+          <span>Fig. 2 — V-bottom chamber, mid-section</span>
+          <b>Post-CFD redesign</b>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ 04 POWER ============ -->
+  <section class="eng" id="power">
+    <div class="eng-head">
+      <div class="lab">§ 04 / Power</div>
+      <h2 class="serif">Electrical <em>power budget</em></h2>
+    </div>
+
+    <div class="meta-strip">
+      <div><div class="k">Supply</div><div class="v">12 V / 20 A</div></div>
+      <div><div class="k">Peak Demand</div><div class="v">14.8 A</div></div>
+      <div><div class="k">De-rated</div><div class="v">18.5 A</div></div>
+      <div><div class="k">Logic Rail</div><div class="v">3.3 V</div></div>
+    </div>
+
+    <div class="prose">
+      <p>The Peltier dominates the current budget:</p>
+
+      <div class="eq">
+        <div class="eq-label">Eq. 8 — Peltier current draw</div>
+        <div class="eq-num">(8)</div>
+        $$I_{Peltier} = \frac{P}{V} = \frac{144}{12} = 12 \text{ A}$$
+      </div>
+
+      <p>Summing every subsystem peak current and applying the UL 1082 / IEC 60335-1 <b>80% continuous-load de-rating rule</b> gives a 20 A supply:</p>
+
+      <table class="eng-table">
+        <thead><tr><th>Subsystem</th><th>Peak Current</th></tr></thead>
+        <tbody>
+          <tr><td class="text">Peltier Cooling (144 W TEC)</td><td class="mono">12.00 A</td></tr>
+          <tr><td class="text">Ingredient Valve — NC (×1)</td><td class="mono">~0.25 A</td></tr>
+          <tr><td class="text">Master Valve — NC (×1)</td><td class="mono">~0.25 A</td></tr>
+          <tr><td class="text">Peristaltic Pump (max 1 active)</td><td class="mono">~0.30 A</td></tr>
+          <tr><td class="text">Mixing Motor</td><td class="mono">~1.00 A</td></tr>
+          <tr><td class="text">Logic + Fans (Giga R1 + Display)</td><td class="mono">~1.00 A</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td><b>Total Peak Demand</b></td><td class="mono"><b>14.80 A</b></td></tr>
+          <tr><td><b>With 20% Safety Margin</b></td><td class="mono"><b>18.50 A</b></td></tr>
+        </tfoot>
+      </table>
+
+      <h3 class="serif">Three passive protection networks</h3>
+      <p>The 3.3 V Arduino GPIO pins are protected by three redundant networks. <b>Gate resistors (220 Ω)</b> limit inrush current from charging MOSFET gate capacitance:</p>
+
+      <div class="eq">
+        <div class="eq-label">Eq. 9 — Gate inrush current</div>
+        <div class="eq-num">(9)</div>
+        $$I_{gate} = \frac{V_{pin}}{R_{gate}} = \frac{3.3}{220} = 15 \text{ mA}$$
+      </div>
+
+      <p>under the pin's 20 mA limit. <b>Pull-down resistors (10 kΩ)</b> hold each MOSFET gate at GND during boot, forcing every valve to default Normally Closed (zero-flow) before firmware initializes. <b>Flyback diodes (1N4007, 1 kV)</b> across every motor and valve clamp the back-EMF spike when inductive loads de-energize, protecting both the MOSFETs and the MCU.</p>
+    </div>
+  </section>
+
+  <!-- ============ 05 FIRMWARE ============ -->
+  <section class="eng" id="firmware">
+    <div class="eng-head">
+      <div class="lab">§ 05 / Firmware</div>
+      <h2 class="serif">Embedded <em>control</em></h2>
+    </div>
+
+    <div class="meta-strip">
+      <div><div class="k">MCU</div><div class="v">Giga R1 WiFi</div></div>
+      <div><div class="k">Source Files</div><div class="v">8</div></div>
+      <div><div class="k">UI</div><div class="v">Touchscreen</div></div>
+      <div><div class="k">Remote</div><div class="v">REST API</div></div>
+    </div>
+
+    <div class="prose">
+      <p>The firmware stack is distributed across eight source files covering the state machine, hardware abstraction layer, touchscreen UI rendering, and a WiFi-hosted recipe REST API. The state machine enforces a strict sequential flow; CLEAN is also reachable directly from IDLE for standalone cleaning cycles.</p>
+
+      <div class="fsm">
+        <div class="node first">IDLE</div>
+        <div class="arrow">→</div>
+        <div class="node">SELECT</div>
+        <div class="arrow">→</div>
+        <div class="node">DISPENSE</div>
+        <div class="arrow">→</div>
+        <div class="node">MIX</div>
+        <div class="arrow">→</div>
+        <div class="node">SERVE</div>
+        <div class="arrow">→</div>
+        <div class="node">CLEAN</div>
+      </div>
+
+      <p>Safety-critical parameters — maximum dispense volume, timeout — are hard-coded in firmware and <b>not exposed via the web API</b>. The emergency stop is reachable from both the touchscreen Cancel button and a REST endpoint, returning the system to IDLE from any state.</p>
+
+      <figure class="full">
+        <img src="assets/ui-touchscreen.jpg" alt="Touchscreen UI splash screen showing MechaMix branding and WiFi address" />
+        <figcaption>
+          <span>Fig. 3 — Touchscreen splash, Giga Display Shield</span>
+          <b>480 × 320 landscape</b>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ 06 FABRICATION ============ -->
+  <section class="eng" id="fabrication">
+    <div class="eng-head">
+      <div class="lab">§ 06 / Fabrication</div>
+      <h2 class="serif">No <em>welds</em>, in-house</h2>
+    </div>
+
+    <div class="meta-strip">
+      <div><div class="k">Constraint</div><div class="v">No welding</div></div>
+      <div><div class="k">Frame</div><div class="v">T-slot Al</div></div>
+      <div><div class="k">Panels</div><div class="v">Plexiglass</div></div>
+      <div><div class="k">Methods</div><div class="v">3D / Laser / Mill</div></div>
+    </div>
+
+    <div class="prose">
+      <p>The capstone fabrication rules disallowed welding. Most beverage-machine chasses are welded steel; the alternative — bolted aluminum extrusion — needs design discipline to stay rigid. The frame is built entirely from <b>aluminum T-slot extrusions joined with T-nut fasteners, corner brackets, and hex standoffs</b>: a tool-free, reconfigurable skeleton that survived the vibration stability test across 15 consecutive mixing cycles with no joint movement, no screw walk, and no cracked components.</p>
+
+      <p>The mixing chamber, pump housings, brackets, and nozzle were 3D-printed in Bambu PLA at the NYU Tandon MakerSpace. Panels were laser-cut plexiglass. The electronics bay is isolated at the rear of the machine; fluid lines route through the forward section. The mixing chamber rests on top of the dispenser housing without fixed attachments — pop it off, rinse it, drop it back.</p>
+
+      <h3 class="serif">If this went to production</h3>
+      <p>The outer panels would transition to stamped food-grade stainless. PLA structural parts would move to injection-moulded ABS (above ~10,000 units to amortize the moulding cost). The T-slot frame would be replaced by a welded or bolted stainless chassis. The Arduino + breadboard would be replaced by a custom PCB. Pump heads would be sourced at OEM volume pricing.</p>
+
+      <figure class="full">
+        <img src="assets/cad-top-internal.png" alt="Top-down CAD view of internal layout showing electronics bay and cooling chamber" />
+        <figcaption>
+          <span>Fig. 4 — Top-down, electronics / cooling zoning</span>
+          <b>Fluid ↔ electronics isolation</b>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+</div>
+
+<!-- ============ FOOTER CTA ============ -->
+<div class="eng-cta">
+  <p>This page abridges the 16-page design report. The full document — prior art analysis, morphological chart, impact matrix, detailed test procedures — is embedded in full at <a href="report.html" style="color:var(--accent); border-bottom:1px solid var(--accent);">/report</a>.</p>
+  <a href="report.html">Read the full report <span>→</span></a>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="row">
+      <div>© 2026 The Alchemists · NYU Tandon</div>
+      <div>
+        <a href="index.html">Home</a> · 
+        <a href="gallery.html">Gallery</a> · 
+        <a href="report.html">Report</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
